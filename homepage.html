@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Tracker</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #17212b;
+            --muted: #5f6b7a;
+            --accent: #1f8ef1;
+            --success: #1a9b4b;
+            --border: #d9e2ec;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 1.8rem;
+        }
+
+        p.subtitle {
+            margin: 0 0 18px;
+            color: var(--muted);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        input,
+        button {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 10px;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: 2px solid #b9ddff;
+            border-color: var(--accent);
+        }
+
+        .button-row {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: 700;
+            border: none;
+            color: white;
+            background: var(--accent);
+        }
+
+        button.secondary {
+            background: #8c98a8;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .stat {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            background: #fbfdff;
+        }
+
+        .stat h3 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .stat p {
+            margin: 6px 0 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .money {
+            color: var(--success);
+        }
+
+        .small {
+            font-size: 0.86rem;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Work + Commission Tracker</h1>
+        <p class="subtitle">Track daily earnings, reviews, and month totals.</p>
+
+        <section class="card">
+            <h2>Account Login</h2>
+            <div class="grid">
+                <div>
+                    <label for="authEmail">Email</label>
+                    <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div>
+                    <label for="authPassword">Password</label>
+                    <input id="authPassword" type="password" placeholder="Enter your password" autocomplete="current-password">
+                </div>
+            </div>
+            <div class="button-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                <button id="signInBtn" type="button">Sign In</button>
+                <button id="signUpBtn" type="button">Create Account</button>
+                <button id="signOutBtn" type="button" class="secondary">Sign Out</button>
+            </div>
+            <p class="small" id="authStatus">Not signed in.</p>
+        </section>
+
+        <section class="card">
+            <div class="grid">
+                <div>
+                    <label for="workDate">Date</label>
+                    <input id="workDate" type="date">
+                </div>
+                <div>
+                    <label for="hoursWorked">Hours worked</label>
+                    <input id="hoursWorked" type="number" min="0" step="0.25" placeholder="ex: 8">
+                </div>
+                <div>
+                    <label for="phonesRepaired">Phones repaired ($5 each)</label>
+                    <input id="phonesRepaired" type="number" min="0" step="1" placeholder="ex: 6">
+                </div>
+                <div>
+                    <label for="insuranceSignups">Insurance signups ($35 each)</label>
+                    <input id="insuranceSignups" type="number" min="0" step="1" placeholder="ex: 2">
+                </div>
+                <div>
+                    <label for="totalCustomers">Total customers</label>
+                    <input id="totalCustomers" type="number" min="0" step="1" placeholder="ex: 20">
+                </div>
+                <div>
+                    <label for="fiveStarReviews">5-star reviews</label>
+                    <input id="fiveStarReviews" type="number" min="0" step="1" placeholder="ex: 7">
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button id="saveBtn" type="button">Save / Update Day</button>
+                <button id="clearBtn" type="button" class="secondary">Clear Inputs</button>
+            </div>
+            <p class="small">Hourly pay rate is fixed at $17.02 per hour.</p>
+            <p class="small" id="syncStatus">Cloud sync: not connected. Add your Supabase keys in this file.</p>
+        </section>
+
+        <section class="card">
+            <h2>Daily Summary</h2>
+            <div class="stats">
+                <div class="stat">
+                    <h3>Hourly Pay</h3>
+                    <p class="money" id="dailyHourlyPay">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Commission Pay</h3>
+                    <p class="money" id="dailyCommission">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Total Daily Money</h3>
+                    <p class="money" id="dailyTotal">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>5-Star Rate</h3>
+                    <p id="dailyReviewRate">0.00%</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Month Totals (Compare)</h2>
+            <div class="stats">
+                <div class="stat">
+                    <h3>This Month Money</h3>
+                    <p class="money" id="thisMonthMoney">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>This Month 5-Star Reviews</h3>
+                    <p id="thisMonthReviews">0</p>
+                </div>
+                <div class="stat">
+                    <h3>This Month 5-Star %</h3>
+                    <p id="thisMonthRate">0.00%</p>
+                </div>
+                <div class="stat">
+                    <h3>Last Month Money</h3>
+                    <p class="money" id="lastMonthMoney">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Last Month 5-Star Reviews</h3>
+                    <p id="lastMonthReviews">0</p>
+                </div>
+                <div class="stat">
+                    <h3>Last Month 5-Star %</h3>
+                    <p id="lastMonthRate">0.00%</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const PAY_PER_HOUR = 17.02;
+        const PAY_PER_PHONE = 5;
+        const PAY_PER_SIGNUP = 35;
+        const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL_HERE";
+        const SUPABASE_ANON_KEY = "sb_publishable_nHkf-Zy3Tirn0XwLnGIsMw_MI-9zNhL";
+        const TABLE_NAME = "daily_tracker";
+
+        let supabaseClient = null;
+        let currentUser = null;
+
+        const ids = {
+            workDate: document.getElementById("workDate"),
+            authEmail: document.getElementById("authEmail"),
+            authPassword: document.getElementById("authPassword"),
+            signInBtn: document.getElementById("signInBtn"),
+            signUpBtn: document.getElementById("signUpBtn"),
+            signOutBtn: document.getElementById("signOutBtn"),
+            authStatus: document.getElementById("authStatus"),
+            hoursWorked: document.getElementById("hoursWorked"),
+            phonesRepaired: document.getElementById("phonesRepaired"),
+            insuranceSignups: document.getElementById("insuranceSignups"),
+            totalCustomers: document.getElementById("totalCustomers"),
+            fiveStarReviews: document.getElementById("fiveStarReviews"),
+            saveBtn: document.getElementById("saveBtn"),
+            clearBtn: document.getElementById("clearBtn"),
+            dailyHourlyPay: document.getElementById("dailyHourlyPay"),
+            dailyCommission: document.getElementById("dailyCommission"),
+            dailyTotal: document.getElementById("dailyTotal"),
+            dailyReviewRate: document.getElementById("dailyReviewRate"),
+            thisMonthMoney: document.getElementById("thisMonthMoney"),
+            thisMonthReviews: document.getElementById("thisMonthReviews"),
+            thisMonthRate: document.getElementById("thisMonthRate"),
+            lastMonthMoney: document.getElementById("lastMonthMoney"),
+            lastMonthReviews: document.getElementById("lastMonthReviews"),
+            lastMonthRate: document.getElementById("lastMonthRate"),
+            syncStatus: document.getElementById("syncStatus")
+        };
+
+        const numberInputs = [
+            ids.hoursWorked,
+            ids.phonesRepaired,
+            ids.insuranceSignups,
+            ids.totalCustomers,
+            ids.fiveStarReviews
+        ];
+
+        function getValue(input) {
+            const parsed = Number.parseFloat(input.value);
+            return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+        }
+
+        function currency(value) {
+            return `$${value.toFixed(2)}`;
+        }
+
+        function percent(numerator, denominator) {
+            if (denominator <= 0) {
+                return "0.00%";
+            }
+            return `${((numerator / denominator) * 100).toFixed(2)}%`;
+        }
+
+        function calculateFromInputs() {
+            const hoursWorked = getValue(ids.hoursWorked);
+            const phonesRepaired = getValue(ids.phonesRepaired);
+            const insuranceSignups = getValue(ids.insuranceSignups);
+            const totalCustomers = getValue(ids.totalCustomers);
+            const fiveStarReviews = getValue(ids.fiveStarReviews);
+
+            const hourlyPay = hoursWorked * PAY_PER_HOUR;
+            const commissionPay = (phonesRepaired * PAY_PER_PHONE) + (insuranceSignups * PAY_PER_SIGNUP);
+            const totalPay = hourlyPay + commissionPay;
+            const reviewRate = percent(fiveStarReviews, totalCustomers);
+
+            return {
+                hoursWorked,
+                phonesRepaired,
+                insuranceSignups,
+                totalCustomers,
+                fiveStarReviews,
+                hourlyPay,
+                commissionPay,
+                totalPay,
+                reviewRate
+            };
+        }
+
+        function renderDailySummary() {
+            const daily = calculateFromInputs();
+            ids.dailyHourlyPay.textContent = currency(daily.hourlyPay);
+            ids.dailyCommission.textContent = currency(daily.commissionPay);
+            ids.dailyTotal.textContent = currency(daily.totalPay);
+            ids.dailyReviewRate.textContent = daily.reviewRate;
+        }
+
+        function clearMonthSummary() {
+            ids.thisMonthMoney.textContent = "$0.00";
+            ids.thisMonthReviews.textContent = "0";
+            ids.thisMonthRate.textContent = "0.00%";
+            ids.lastMonthMoney.textContent = "$0.00";
+            ids.lastMonthReviews.textContent = "0";
+            ids.lastMonthRate.textContent = "0.00%";
+        }
+
+        function setTrackerEnabled(enabled) {
+            ids.workDate.disabled = !enabled;
+            ids.saveBtn.disabled = !enabled;
+            ids.clearBtn.disabled = !enabled;
+            numberInputs.forEach((input) => {
+                input.disabled = !enabled;
+            });
+        }
+
+        function setSyncStatus(text, isError = false) {
+            ids.syncStatus.textContent = text;
+            ids.syncStatus.style.color = isError ? "#b11a1a" : "#5f6b7a";
+        }
+
+        function isSupabaseConfigured() {
+            return (
+                SUPABASE_URL &&
+                SUPABASE_ANON_KEY &&
+                SUPABASE_URL !== "PASTE_YOUR_SUPABASE_URL_HERE" &&
+                SUPABASE_ANON_KEY !== "PASTE_YOUR_SUPABASE_ANON_KEY_HERE"
+            );
+        }
+
+        function initSupabase() {
+            if (!isSupabaseConfigured()) {
+                setSyncStatus("Cloud sync: not connected. Add your Supabase URL + anon key.", true);
+                return false;
+            }
+
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            setSyncStatus("Cloud sync: connected. Please sign in.");
+
+            supabaseClient.auth.onAuthStateChange(async (_, session) => {
+                await handleAuthState(session);
+            });
+
+            return true;
+        }
+
+        function setAuthStatus(text, isError = false) {
+            ids.authStatus.textContent = text;
+            ids.authStatus.style.color = isError ? "#b11a1a" : "#5f6b7a";
+        }
+
+        function getAuthCredentials() {
+            const email = ids.authEmail.value.trim();
+            const password = ids.authPassword.value;
+            return { email, password };
+        }
+
+        async function handleSignIn() {
+            if (!supabaseClient) {
+                alert("Supabase is not configured yet.");
+                return;
+            }
+
+            const { email, password } = getAuthCredentials();
+            if (!email || !password) {
+                alert("Enter email and password.");
+                return;
+            }
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                setAuthStatus(`Sign in failed: ${error.message}`, true);
+                return;
+            }
+
+            setAuthStatus("Signed in.");
+        }
+
+        async function handleSignUp() {
+            if (!supabaseClient) {
+                alert("Supabase is not configured yet.");
+                return;
+            }
+
+            const { email, password } = getAuthCredentials();
+            if (!email || !password) {
+                alert("Enter email and password.");
+                return;
+            }
+
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) {
+                setAuthStatus(`Create account failed: ${error.message}`, true);
+                return;
+            }
+
+            if (data.session) {
+                setAuthStatus("Account created and signed in.");
+            } else {
+                setAuthStatus("Account created. Check your email if confirmation is enabled.");
+            }
+        }
+
+        async function handleSignOut() {
+            if (!supabaseClient) {
+                return;
+            }
+
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) {
+                setAuthStatus(`Sign out failed: ${error.message}`, true);
+                return;
+            }
+
+            setAuthStatus("Signed out.");
+        }
+
+        async function handleAuthState(session) {
+            currentUser = session?.user || null;
+
+            if (!currentUser) {
+                setTrackerEnabled(false);
+                clearInputs();
+                clearMonthSummary();
+                setSyncStatus("Cloud sync: connected. Please sign in.");
+                if (!ids.authStatus.textContent.includes("failed") && !ids.authStatus.textContent.includes("created")) {
+                    setAuthStatus("Not signed in.");
+                }
+                return;
+            }
+
+            setTrackerEnabled(true);
+            setAuthStatus(`Signed in as ${currentUser.email || "user"}.`);
+            setSyncStatus("Cloud sync: connected and signed in.");
+            await loadSelectedDateData();
+            await renderMonthSummary();
+        }
+
+        function monthKeyFromDate(dateString) {
+            return dateString ? dateString.slice(0, 7) : "";
+        }
+
+        function summarizeMonth(records, monthKey) {
+            let money = 0;
+            let reviews = 0;
+            let customers = 0;
+
+            for (const item of records) {
+                if (monthKeyFromDate(item.day_date) !== monthKey) {
+                    continue;
+                }
+                money += Number(item.totalPay || 0);
+                reviews += Number(item.fiveStarReviews || 0);
+                customers += Number(item.totalCustomers || 0);
+            }
+
+            return { money, reviews, customers };
+        }
+
+        function monthRange(dateObj) {
+            const start = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+            const end = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0);
+            const startKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-01`;
+            const endKey = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
+            return { startKey, endKey };
+        }
+
+        async function fetchRecordsInRange(startDate, endDate) {
+            if (!supabaseClient || !currentUser) {
+                return [];
+            }
+
+            const { data, error } = await supabaseClient
+                .from(TABLE_NAME)
+                .select("day_date, total_pay, five_star_reviews, total_customers")
+                .eq("user_id", currentUser.id)
+                .gte("day_date", startDate)
+                .lte("day_date", endDate)
+                .order("day_date", { ascending: true });
+
+            if (error) {
+                throw error;
+            }
+
+            return (data || []).map((item) => ({
+                day_date: item.day_date,
+                totalPay: Number(item.total_pay || 0),
+                fiveStarReviews: Number(item.five_star_reviews || 0),
+                totalCustomers: Number(item.total_customers || 0)
+            }));
+        }
+
+        async function renderMonthSummary() {
+            if (!supabaseClient || !currentUser) {
+                clearMonthSummary();
+                return;
+            }
+
+            const today = new Date();
+            const thisMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+            const lastMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const lastMonthKey = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, "0")}`;
+
+            const thisRange = monthRange(today);
+            const lastRange = monthRange(lastMonthDate);
+
+            const [thisRows, lastRows] = await Promise.all([
+                fetchRecordsInRange(thisRange.startKey, thisRange.endKey),
+                fetchRecordsInRange(lastRange.startKey, lastRange.endKey)
+            ]);
+
+            const thisMonth = summarizeMonth(thisRows, thisMonthKey);
+            const lastMonth = summarizeMonth(lastRows, lastMonthKey);
+
+            ids.thisMonthMoney.textContent = currency(thisMonth.money);
+            ids.thisMonthReviews.textContent = String(thisMonth.reviews);
+            ids.thisMonthRate.textContent = percent(thisMonth.reviews, thisMonth.customers);
+
+            ids.lastMonthMoney.textContent = currency(lastMonth.money);
+            ids.lastMonthReviews.textContent = String(lastMonth.reviews);
+            ids.lastMonthRate.textContent = percent(lastMonth.reviews, lastMonth.customers);
+        }
+
+        async function loadSelectedDateData() {
+            const selected = ids.workDate.value;
+            if (!supabaseClient || !currentUser || !selected) {
+                clearInputs();
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from(TABLE_NAME)
+                .select("hours_worked, phones_repaired, insurance_signups, total_customers, five_star_reviews")
+                .eq("user_id", currentUser.id)
+                .eq("day_date", selected)
+                .maybeSingle();
+
+            if (error) {
+                alert(`Failed to load date data: ${error.message}`);
+                return;
+            }
+
+            const record = data;
+
+            if (!record) {
+                numberInputs.forEach((input) => {
+                    input.value = "";
+                });
+                renderDailySummary();
+                return;
+            }
+
+            ids.hoursWorked.value = record.hours_worked ?? "";
+            ids.phonesRepaired.value = record.phones_repaired ?? "";
+            ids.insuranceSignups.value = record.insurance_signups ?? "";
+            ids.totalCustomers.value = record.total_customers ?? "";
+            ids.fiveStarReviews.value = record.five_star_reviews ?? "";
+
+            renderDailySummary();
+        }
+
+        function setDefaultDate() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, "0");
+            const dd = String(now.getDate()).padStart(2, "0");
+            ids.workDate.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        async function saveDayRecord() {
+            if (!supabaseClient) {
+                alert("Supabase is not connected yet. Add URL and anon key first.");
+                return;
+            }
+
+            if (!currentUser) {
+                alert("Please sign in first.");
+                return;
+            }
+
+            const selectedDate = ids.workDate.value;
+            if (!selectedDate) {
+                alert("Please choose a date.");
+                return;
+            }
+
+            const daily = calculateFromInputs();
+            if (daily.fiveStarReviews > daily.totalCustomers) {
+                alert("5-star reviews cannot be more than total customers.");
+                return;
+            }
+
+            const row = {
+                user_id: currentUser.id,
+                day_date: selectedDate,
+                hours_worked: daily.hoursWorked,
+                phones_repaired: daily.phonesRepaired,
+                insurance_signups: daily.insuranceSignups,
+                total_customers: daily.totalCustomers,
+                five_star_reviews: daily.fiveStarReviews,
+                hourly_pay: daily.hourlyPay,
+                commission_pay: daily.commissionPay,
+                total_pay: daily.totalPay
+            };
+
+            const { error } = await supabaseClient
+                .from(TABLE_NAME)
+                .upsert(row, { onConflict: "user_id,day_date" });
+
+            if (error) {
+                alert(`Save failed: ${error.message}`);
+                return;
+            }
+
+            await renderMonthSummary();
+            alert("Saved.");
+        }
+
+        function clearInputs() {
+            numberInputs.forEach((input) => {
+                input.value = "";
+            });
+            renderDailySummary();
+        }
+
+        ids.saveBtn.addEventListener("click", saveDayRecord);
+        ids.clearBtn.addEventListener("click", clearInputs);
+        ids.signInBtn.addEventListener("click", handleSignIn);
+        ids.signUpBtn.addEventListener("click", handleSignUp);
+        ids.signOutBtn.addEventListener("click", handleSignOut);
+        ids.workDate.addEventListener("change", async () => {
+            await loadSelectedDateData();
+        });
+        numberInputs.forEach((input) => input.addEventListener("input", renderDailySummary));
+
+        async function initializeApp() {
+            setDefaultDate();
+            renderDailySummary();
+            setTrackerEnabled(false);
+            clearMonthSummary();
+
+            if (initSupabase()) {
+                const { data, error } = await supabaseClient.auth.getSession();
+                if (error) {
+                    setAuthStatus(`Session check failed: ${error.message}`, true);
+                    return;
+                }
+
+                await handleAuthState(data.session);
+            }
+        }
+
+        initializeApp();
+    </script>
+</body>
+</html>
