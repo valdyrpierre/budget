@@ -131,6 +131,44 @@
             color: var(--muted);
             margin-top: 8px;
         }
+
+        .expense-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #fbfdff;
+        }
+
+        .expense-name {
+            font-weight: 600;
+        }
+
+        .expense-amount {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .remove-btn {
+            width: auto;
+            padding: 8px 10px;
+            background: #c13f3f;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .chart-wrap {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            background: #fbfdff;
+        }
     </style>
 </head>
 <body>
@@ -225,9 +263,84 @@
                 </div>
             </div>
         </section>
+
+        <section class="card">
+            <h2>Monthly Expenses Checklist</h2>
+            <div class="grid">
+                <div>
+                    <label for="billName">Bill name</label>
+                    <input id="billName" type="text" placeholder="ex: Rent">
+                </div>
+                <div>
+                    <label for="billAmount">Bill amount ($)</label>
+                    <input id="billAmount" type="number" min="0" step="0.01" placeholder="ex: 250">
+                </div>
+            </div>
+            <div class="button-row">
+                <button id="addBillBtn" type="button">Add Bill</button>
+                <button id="refreshBillsBtn" type="button" class="secondary">Refresh Bills</button>
+            </div>
+            <p class="small" id="expenseMonthLabel">Bills for this month</p>
+            <div id="expenseList"></div>
+            <div class="stats">
+                <div class="stat">
+                    <h3>Total Monthly Bills</h3>
+                    <p class="money" id="totalBillsAmount">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Bills Paid</h3>
+                    <p id="paidBillsAmount">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Bills Left</h3>
+                    <p id="remainingBillsAmount">$0.00</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Save Goal Planner</h2>
+            <div class="grid">
+                <div>
+                    <label for="goalAmount">Savings goal after bills ($)</label>
+                    <input id="goalAmount" type="number" min="0" step="1" value="1000">
+                </div>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <h3>Income This Month</h3>
+                    <p class="money" id="plannerIncome">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Needed To Hit Goal</h3>
+                    <p id="plannerNeeded">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Repairs Needed ($5 each)</h3>
+                    <p id="plannerRepairs">0</p>
+                </div>
+                <div class="stat">
+                    <h3>Signups Needed ($35 each)</h3>
+                    <p id="plannerSignups">0</p>
+                </div>
+                <div class="stat">
+                    <h3>Hours Needed ($17.02/hr)</h3>
+                    <p id="plannerHours">0.00</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Last 12 Months Graph</h2>
+            <div class="chart-wrap">
+                <canvas id="monthlyChart" height="120"></canvas>
+            </div>
+            <p class="small">Compares monthly money and 5-star rate for the last 12 months.</p>
+        </section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const PAY_PER_HOUR = 17.02;
         const PAY_PER_PHONE = 5;
@@ -235,8 +348,14 @@
         const SUPABASE_URL = "https://twzsvnegkhkhcgjjasik.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_nHkf-Zy3Tirn0XwLnGIsMw_MI-9zNhL";
         const TABLE_NAME = "daily_tracker";
+        const EXPENSE_TABLE = "expense_items";
+        const EXPENSE_PAYMENT_TABLE = "expense_payments";
 
         let supabaseClient = null;
+        let monthlyChart = null;
+        let thisMonthIncome = 0;
+        let currentExpenseItems = [];
+        let currentPaidMap = new Map();
 
         const ids = {
             workDate: document.getElementById("workDate"),
@@ -257,7 +376,23 @@
             lastMonthMoney: document.getElementById("lastMonthMoney"),
             lastMonthReviews: document.getElementById("lastMonthReviews"),
             lastMonthRate: document.getElementById("lastMonthRate"),
-            syncStatus: document.getElementById("syncStatus")
+            syncStatus: document.getElementById("syncStatus"),
+            billName: document.getElementById("billName"),
+            billAmount: document.getElementById("billAmount"),
+            addBillBtn: document.getElementById("addBillBtn"),
+            refreshBillsBtn: document.getElementById("refreshBillsBtn"),
+            expenseMonthLabel: document.getElementById("expenseMonthLabel"),
+            expenseList: document.getElementById("expenseList"),
+            totalBillsAmount: document.getElementById("totalBillsAmount"),
+            paidBillsAmount: document.getElementById("paidBillsAmount"),
+            remainingBillsAmount: document.getElementById("remainingBillsAmount"),
+            goalAmount: document.getElementById("goalAmount"),
+            plannerIncome: document.getElementById("plannerIncome"),
+            plannerNeeded: document.getElementById("plannerNeeded"),
+            plannerRepairs: document.getElementById("plannerRepairs"),
+            plannerSignups: document.getElementById("plannerSignups"),
+            plannerHours: document.getElementById("plannerHours"),
+            monthlyChart: document.getElementById("monthlyChart")
         };
 
         const numberInputs = [
@@ -356,6 +491,36 @@
             return dateString ? dateString.slice(0, 7) : "";
         }
 
+        function formatMonthLabel(monthKey) {
+            const [year, month] = monthKey.split("-").map(Number);
+            const d = new Date(year, month - 1, 1);
+            return d.toLocaleString("en-US", { month: "short", year: "2-digit" });
+        }
+
+        function getCurrentMonthKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        }
+
+        function getPastMonthKeys(count) {
+            const keys = [];
+            const now = new Date();
+            for (let i = count - 1; i >= 0; i -= 1) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+            }
+            return keys;
+        }
+
+        function getMonthStartEnd(monthKey) {
+            const [year, month] = monthKey.split("-").map(Number);
+            const start = new Date(year, month - 1, 1);
+            const end = new Date(year, month, 0);
+            const startKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-01`;
+            const endKey = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
+            return { startKey, endKey };
+        }
+
         function summarizeMonth(records, monthKey) {
             let money = 0;
             let reviews = 0;
@@ -426,6 +591,7 @@
 
             const thisMonth = summarizeMonth(thisRows, thisMonthKey);
             const lastMonth = summarizeMonth(lastRows, lastMonthKey);
+            thisMonthIncome = thisMonth.money;
 
             ids.thisMonthMoney.textContent = currency(thisMonth.money);
             ids.thisMonthReviews.textContent = String(thisMonth.reviews);
@@ -434,6 +600,278 @@
             ids.lastMonthMoney.textContent = currency(lastMonth.money);
             ids.lastMonthReviews.textContent = String(lastMonth.reviews);
             ids.lastMonthRate.textContent = percent(lastMonth.reviews, lastMonth.customers);
+
+            renderPlanner();
+        }
+
+        async function loadExpenseItems() {
+            if (!supabaseClient) {
+                currentExpenseItems = [];
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from(EXPENSE_TABLE)
+                .select("id, name, amount")
+                .eq("is_active", true)
+                .order("created_at", { ascending: true });
+
+            if (error) {
+                throw error;
+            }
+
+            currentExpenseItems = (data || []).map((item) => ({
+                id: Number(item.id),
+                name: item.name,
+                amount: Number(item.amount || 0)
+            }));
+        }
+
+        async function loadExpensePaidStatus(monthKey) {
+            if (!supabaseClient) {
+                currentPaidMap = new Map();
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from(EXPENSE_PAYMENT_TABLE)
+                .select("expense_id, is_paid")
+                .eq("month_key", monthKey);
+
+            if (error) {
+                throw error;
+            }
+
+            currentPaidMap = new Map();
+            (data || []).forEach((item) => {
+                currentPaidMap.set(Number(item.expense_id), Boolean(item.is_paid));
+            });
+        }
+
+        function getExpenseTotals() {
+            let total = 0;
+            let paid = 0;
+
+            currentExpenseItems.forEach((item) => {
+                total += item.amount;
+                if (currentPaidMap.get(item.id)) {
+                    paid += item.amount;
+                }
+            });
+
+            return {
+                total,
+                paid,
+                remaining: Math.max(0, total - paid)
+            };
+        }
+
+        function renderExpenseList() {
+            const monthKey = getCurrentMonthKey();
+            ids.expenseMonthLabel.textContent = `Bills for ${formatMonthLabel(monthKey)}`;
+
+            if (currentExpenseItems.length === 0) {
+                ids.expenseList.innerHTML = "<p class='small'>No bills yet. Add your first bill above.</p>";
+                ids.totalBillsAmount.textContent = "$0.00";
+                ids.paidBillsAmount.textContent = "$0.00";
+                ids.remainingBillsAmount.textContent = "$0.00";
+                renderPlanner();
+                return;
+            }
+
+            ids.expenseList.innerHTML = currentExpenseItems.map((item) => {
+                const checked = currentPaidMap.get(item.id) ? "checked" : "";
+                return `
+                    <div class="expense-row">
+                        <input type="checkbox" data-expense-id="${item.id}" ${checked}>
+                        <div class="expense-name">${item.name}</div>
+                        <div class="expense-amount">${currency(item.amount)}</div>
+                        <button class="remove-btn" data-remove-id="${item.id}" type="button">Remove</button>
+                    </div>
+                `;
+            }).join("");
+
+            const totals = getExpenseTotals();
+            ids.totalBillsAmount.textContent = currency(totals.total);
+            ids.paidBillsAmount.textContent = currency(totals.paid);
+            ids.remainingBillsAmount.textContent = currency(totals.remaining);
+            renderPlanner();
+        }
+
+        async function refreshExpenses() {
+            if (!supabaseClient) {
+                return;
+            }
+
+            const monthKey = getCurrentMonthKey();
+            await loadExpenseItems();
+            await loadExpensePaidStatus(monthKey);
+            renderExpenseList();
+        }
+
+        async function addBill() {
+            if (!supabaseClient) {
+                alert("Supabase is not connected yet.");
+                return;
+            }
+
+            const name = ids.billName.value.trim();
+            const amount = Number.parseFloat(ids.billAmount.value);
+
+            if (!name || !Number.isFinite(amount) || amount < 0) {
+                alert("Enter a valid bill name and amount.");
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from(EXPENSE_TABLE)
+                .insert({ name, amount, is_active: true });
+
+            if (error) {
+                alert(`Failed to add bill: ${error.message}`);
+                return;
+            }
+
+            ids.billName.value = "";
+            ids.billAmount.value = "";
+            await refreshExpenses();
+        }
+
+        async function toggleExpensePaid(expenseId, isPaid) {
+            const monthKey = getCurrentMonthKey();
+
+            const { error } = await supabaseClient
+                .from(EXPENSE_PAYMENT_TABLE)
+                .upsert({
+                    expense_id: expenseId,
+                    month_key: monthKey,
+                    is_paid: isPaid
+                }, { onConflict: "expense_id,month_key" });
+
+            if (error) {
+                alert(`Failed to update bill status: ${error.message}`);
+                return;
+            }
+
+            currentPaidMap.set(expenseId, isPaid);
+            renderExpenseList();
+        }
+
+        async function removeBill(expenseId) {
+            const { error } = await supabaseClient
+                .from(EXPENSE_TABLE)
+                .delete()
+                .eq("id", expenseId);
+
+            if (error) {
+                alert(`Failed to remove bill: ${error.message}`);
+                return;
+            }
+
+            await refreshExpenses();
+        }
+
+        function renderPlanner() {
+            const goal = Math.max(0, Number.parseFloat(ids.goalAmount.value) || 0);
+            const billsTotal = getExpenseTotals().total;
+            const requiredIncome = billsTotal + goal;
+            const needed = Math.max(0, requiredIncome - thisMonthIncome);
+
+            ids.plannerIncome.textContent = currency(thisMonthIncome);
+            ids.plannerNeeded.textContent = currency(needed);
+            ids.plannerRepairs.textContent = String(Math.ceil(needed / PAY_PER_PHONE));
+            ids.plannerSignups.textContent = String(Math.ceil(needed / PAY_PER_SIGNUP));
+            ids.plannerHours.textContent = (needed / PAY_PER_HOUR).toFixed(2);
+        }
+
+        async function render12MonthChart() {
+            if (!supabaseClient) {
+                return;
+            }
+
+            const monthKeys = getPastMonthKeys(12);
+            const firstRange = getMonthStartEnd(monthKeys[0]);
+            const lastRange = getMonthStartEnd(monthKeys[monthKeys.length - 1]);
+
+            const { data, error } = await supabaseClient
+                .from(TABLE_NAME)
+                .select("day_date, total_pay, five_star_reviews, total_customers")
+                .gte("day_date", firstRange.startKey)
+                .lte("day_date", lastRange.endKey)
+                .order("day_date", { ascending: true });
+
+            if (error) {
+                throw error;
+            }
+
+            const aggregate = new Map();
+            monthKeys.forEach((key) => {
+                aggregate.set(key, { money: 0, reviews: 0, customers: 0 });
+            });
+
+            (data || []).forEach((item) => {
+                const key = monthKeyFromDate(item.day_date);
+                if (!aggregate.has(key)) {
+                    return;
+                }
+                const row = aggregate.get(key);
+                row.money += Number(item.total_pay || 0);
+                row.reviews += Number(item.five_star_reviews || 0);
+                row.customers += Number(item.total_customers || 0);
+            });
+
+            const labels = monthKeys.map((key) => formatMonthLabel(key));
+            const moneyData = monthKeys.map((key) => aggregate.get(key).money);
+            const rateData = monthKeys.map((key) => {
+                const row = aggregate.get(key);
+                return row.customers > 0 ? Number(((row.reviews / row.customers) * 100).toFixed(2)) : 0;
+            });
+
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+
+            monthlyChart = new Chart(ids.monthlyChart, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: "Money ($)",
+                            data: moneyData,
+                            backgroundColor: "rgba(31, 142, 241, 0.55)",
+                            borderColor: "rgba(31, 142, 241, 1)",
+                            borderWidth: 1,
+                            yAxisID: "y"
+                        },
+                        {
+                            label: "5-Star Rate (%)",
+                            data: rateData,
+                            type: "line",
+                            borderColor: "rgba(26, 155, 75, 1)",
+                            backgroundColor: "rgba(26, 155, 75, 0.2)",
+                            tension: 0.25,
+                            yAxisID: "y1"
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: "Money ($)" }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            position: "right",
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: "5-Star Rate (%)" }
+                        }
+                    }
+                }
+            });
         }
 
         async function loadSelectedDateData() {
@@ -533,19 +971,50 @@
 
         ids.saveBtn.addEventListener("click", saveDayRecord);
         ids.clearBtn.addEventListener("click", clearInputs);
+        ids.addBillBtn.addEventListener("click", addBill);
+        ids.refreshBillsBtn.addEventListener("click", refreshExpenses);
+        ids.goalAmount.addEventListener("input", renderPlanner);
         ids.workDate.addEventListener("change", async () => {
             await loadSelectedDateData();
         });
         numberInputs.forEach((input) => input.addEventListener("input", renderDailySummary));
+        ids.expenseList.addEventListener("change", async (event) => {
+            const target = event.target;
+            if (!target.matches("input[type='checkbox'][data-expense-id]")) {
+                return;
+            }
+
+            const expenseId = Number(target.getAttribute("data-expense-id"));
+            await toggleExpensePaid(expenseId, target.checked);
+        });
+
+        ids.expenseList.addEventListener("click", async (event) => {
+            const target = event.target;
+            if (!target.matches("button[data-remove-id]")) {
+                return;
+            }
+
+            const expenseId = Number(target.getAttribute("data-remove-id"));
+            await removeBill(expenseId);
+        });
 
         async function initializeApp() {
             setDefaultDate();
             renderDailySummary();
             clearMonthSummary();
+            renderPlanner();
 
             if (initSupabase()) {
-                await loadSelectedDateData();
-                await renderMonthSummary();
+                try {
+                    await Promise.all([
+                        loadSelectedDateData(),
+                        renderMonthSummary(),
+                        refreshExpenses(),
+                        render12MonthChart()
+                    ]);
+                } catch (error) {
+                    setSyncStatus(`Cloud sync error: ${error.message}`, true);
+                }
             }
         }
 
