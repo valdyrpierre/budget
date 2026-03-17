@@ -6,48 +6,143 @@
     <title>Budget Tracker</title>
     <style>
         :root {
-            --bg: #f4f7fb;
-            --card: #ffffff;
-            --text: #17212b;
-            --muted: #5f6b7a;
-            --accent: #1f8ef1;
-            --success: #1a9b4b;
-            --border: #d9e2ec;
+            --bg: #f6fbf8;
+            --bg-accent: #e8f5ec;
+            --card: rgba(255, 255, 255, 0.88);
+            --text: #142018;
+            --muted: #4d6256;
+            --accent: #0f9d58;
+            --accent-deep: #0b7c46;
+            --success: #137447;
+            --border: #cde1d4;
+            --glow: rgba(15, 157, 88, 0.22);
+            --shadow: 0 14px 35px rgba(8, 42, 23, 0.1);
         }
 
         * {
             box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: "Segoe UI", "Trebuchet MS", Verdana, sans-serif;
         }
 
         body {
             margin: 0;
-            background: var(--bg);
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 12% 10%, rgba(15, 157, 88, 0.16), transparent 32%),
+                radial-gradient(circle at 90% 20%, rgba(10, 112, 199, 0.1), transparent 28%),
+                linear-gradient(155deg, var(--bg), var(--bg-accent));
             color: var(--text);
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(10px);
+            animation: blobFloat 18s ease-in-out infinite;
+        }
+
+        body::before {
+            top: -120px;
+            left: -90px;
+            background: radial-gradient(circle, rgba(15, 157, 88, 0.19), rgba(15, 157, 88, 0));
+        }
+
+        body::after {
+            right: -120px;
+            bottom: -140px;
+            background: radial-gradient(circle, rgba(27, 121, 207, 0.15), rgba(27, 121, 207, 0));
+            animation-delay: -8s;
+        }
+
+        @keyframes blobFloat {
+            0%,
+            100% {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+            50% {
+                transform: translate3d(24px, -18px, 0) scale(1.08);
+            }
         }
 
         .container {
             max-width: 980px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 28px 18px 30px;
         }
 
         h1 {
-            margin: 0 0 10px;
-            font-size: 1.8rem;
+            margin: 0 0 8px;
+            font-size: clamp(1.7rem, 2.8vw, 2.35rem);
+            letter-spacing: 0.02em;
+            color: #0f4229;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
         }
 
         p.subtitle {
             margin: 0 0 18px;
             color: var(--muted);
+            font-size: 1.02rem;
         }
 
         .card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 16px;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(4px);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(24px);
+            animation: cardReveal 0.75s cubic-bezier(0.21, 1, 0.32, 1) forwards;
+            animation-delay: var(--reveal-delay, 0s);
+            transition: transform 0.2s ease;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -140%;
+            width: 70%;
+            height: 100%;
+            background: linear-gradient(110deg, transparent 10%, rgba(255, 255, 255, 0.5) 50%, transparent 90%);
+            animation: shimmerSweep 1.4s ease-out 1;
+            animation-play-state: paused;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .card.shimmer-active::before {
+            opacity: 1;
+            animation-play-state: running;
+        }
+
+        @keyframes cardReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmerSweep {
+            0% {
+                left: -140%;
+            }
+            48% {
+                left: 160%;
+            }
+            100% {
+                left: 160%;
+            }
         }
 
         .grid {
@@ -61,20 +156,28 @@
             margin-bottom: 6px;
             font-weight: 600;
             font-size: 0.92rem;
+            color: #264235;
         }
 
         input,
         button {
             width: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid var(--border);
             padding: 10px;
             font-size: 1rem;
         }
 
+        input {
+            background: rgba(255, 255, 255, 0.88);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+        }
+
         input:focus {
-            outline: 2px solid #b9ddff;
+            outline: 2px solid #c4f1d9;
             border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--glow);
+            transform: translateY(-1px);
         }
 
         .button-row {
@@ -89,11 +192,24 @@
             font-weight: 700;
             border: none;
             color: white;
-            background: var(--accent);
+            background: linear-gradient(140deg, var(--accent), var(--accent-deep));
+            box-shadow: 0 7px 16px rgba(15, 157, 88, 0.3);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(15, 157, 88, 0.34);
+            filter: saturate(1.05);
+        }
+
+        button:active {
+            transform: translateY(1px);
         }
 
         button.secondary {
-            background: #8c98a8;
+            background: linear-gradient(140deg, #6f7f8f, #50606f);
+            box-shadow: 0 7px 16px rgba(58, 71, 85, 0.25);
         }
 
         .stats {
@@ -104,26 +220,63 @@
 
         .stat {
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px;
-            background: #fbfdff;
+            border-radius: 12px;
+            padding: 12px;
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(238, 248, 242, 0.75));
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            position: relative;
+        }
+
+        .stat:hover {
+            transform: translateY(-2px);
+            border-color: #b7d9c5;
         }
 
         .stat h3 {
             margin: 0;
-            font-size: 0.9rem;
+            font-size: 0.86rem;
             color: var(--muted);
             font-weight: 600;
+            letter-spacing: 0.01em;
         }
 
         .stat p {
             margin: 6px 0 0;
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             font-weight: 700;
         }
 
         .money {
             color: var(--success);
+        }
+
+        .highlight-stat {
+            overflow: hidden;
+        }
+
+        .highlight-stat::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            border: 1px solid transparent;
+            background: linear-gradient(130deg, rgba(15, 157, 88, 0.85), rgba(27, 121, 207, 0.45)) border-box;
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            animation: pulseBorder 2.1s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseBorder {
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+            50% {
+                opacity: 0.95;
+            }
         }
 
         .small {
@@ -138,10 +291,10 @@
             gap: 10px;
             align-items: center;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 10px;
             margin-bottom: 8px;
-            background: #fbfdff;
+            background: linear-gradient(150deg, #fcfefd, #eef7f1);
         }
 
         .expense-name {
@@ -156,18 +309,165 @@
         .remove-btn {
             width: auto;
             padding: 8px 10px;
-            background: #c13f3f;
+            background: linear-gradient(140deg, #c23a3a, #962525);
             color: #fff;
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            box-shadow: 0 6px 14px rgba(150, 37, 37, 0.28);
         }
 
         .chart-wrap {
             border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            background: linear-gradient(160deg, #fcfffd, #edf7f1);
+        }
+
+        h2 {
+            margin-top: 2px;
+            color: #163424;
+            font-size: 1.22rem;
+            letter-spacing: 0.01em;
+        }
+
+        .goal-progress-wrap {
+            margin: 12px 0 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .goal-ring {
+            width: 150px;
+            height: 150px;
+            position: relative;
+            display: grid;
+            place-items: center;
+        }
+
+        .goal-ring svg {
+            width: 150px;
+            height: 150px;
+            transform: rotate(-90deg);
+        }
+
+        .goal-ring-bg,
+        .goal-ring-progress {
+            fill: none;
+            stroke-width: 12;
+        }
+
+        .goal-ring-bg {
+            stroke: rgba(19, 116, 71, 0.16);
+        }
+
+        .goal-ring-progress {
+            stroke: url(#goalRingGradient);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.7s ease;
+            filter: drop-shadow(0 0 5px rgba(15, 157, 88, 0.36));
+        }
+
+        .goal-ring-label {
+            position: absolute;
+            text-align: center;
+            color: #1d4f35;
+            font-weight: 700;
+        }
+
+        .goal-ring-label .small {
+            margin: 0;
+            font-size: 0.75rem;
+        }
+
+        .loading-text {
+            color: transparent !important;
             border-radius: 8px;
-            padding: 10px;
-            background: #fbfdff;
+            background: linear-gradient(90deg, rgba(207, 226, 214, 0.45), rgba(236, 247, 240, 0.9), rgba(207, 226, 214, 0.45));
+            background-size: 220% 100%;
+            animation: skeletonSweep 1.2s ease infinite;
+            min-height: 1.1em;
+        }
+
+        @keyframes skeletonSweep {
+            0% {
+                background-position: 140% 0;
+            }
+            100% {
+                background-position: -40% 0;
+            }
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            background: rgba(255, 255, 255, 0.48);
+            animation: rippleWave 650ms ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes rippleWave {
+            to {
+                transform: scale(3.2);
+                opacity: 0;
+            }
+        }
+
+        .confetti-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 14px;
+            border-radius: 2px;
+            animation: confettiBurst 900ms ease-out forwards;
+        }
+
+        @keyframes confettiBurst {
+            0% {
+                transform: translate3d(0, 0, 0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--rot));
+                opacity: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 16px 12px 24px;
+            }
+
+            .card {
+                padding: 14px;
+                border-radius: 14px;
+            }
+
+            .expense-row {
+                grid-template-columns: auto 1fr;
+            }
+
+            .expense-amount,
+            .remove-btn {
+                grid-column: 2;
+            }
         }
     </style>
 </head>
@@ -237,7 +537,7 @@
         <section class="card">
             <h2>Month Totals (Compare)</h2>
             <div class="stats">
-                <div class="stat">
+                <div class="stat highlight-stat">
                     <h3>This Month Money</h3>
                     <p class="money" id="thisMonthMoney">$0.00</p>
                 </div>
@@ -275,7 +575,7 @@
         <section class="card">
             <h2>Year Totals</h2>
             <div class="stats">
-                <div class="stat">
+                <div class="stat highlight-stat">
                     <h3>This Year Money</h3>
                     <p class="money" id="thisYearMoney">$0.00</p>
                 </div>
@@ -286,56 +586,6 @@
                 <div class="stat">
                     <h3>Average Per Month</h3>
                     <p id="thisYearAvgMonthly">$0.00</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="card">
-            <h2>Weekly Schedule</h2>
-            <p class="small" id="weeklyRangeLabel">Current week</p>
-            <div class="grid">
-                <div>
-                    <label for="expectedMon">Mon expected hours</label>
-                    <input id="expectedMon" type="number" min="0" step="0.25" value="0">
-                </div>
-                <div>
-                    <label for="expectedTue">Tue expected hours</label>
-                    <input id="expectedTue" type="number" min="0" step="0.25" value="0">
-                </div>
-                <div>
-                    <label for="expectedWed">Wed expected hours</label>
-                    <input id="expectedWed" type="number" min="0" step="0.25" value="0">
-                </div>
-                <div>
-                    <label for="expectedThu">Thu expected hours</label>
-                    <input id="expectedThu" type="number" min="0" step="0.25" value="0">
-                </div>
-                <div>
-                    <label for="expectedFri">Fri expected hours</label>
-                    <input id="expectedFri" type="number" min="0" step="0.25" value="0">
-                </div>
-                <div>
-                    <label for="expectedSat">Sat expected hours</label>
-                    <input id="expectedSat" type="number" min="0" step="0.25" value="0">
-                </div>
-                <div>
-                    <label for="expectedSun">Sun expected hours</label>
-                    <input id="expectedSun" type="number" min="0" step="0.25" value="0">
-                </div>
-            </div>
-            <p class="small">Edit these anytime to set your planned weekly schedule.</p>
-            <div class="stats">
-                <div class="stat">
-                    <h3>Expected Weekly Hours</h3>
-                    <p id="weeklyExpectedTotal">0.00</p>
-                </div>
-                <div class="stat">
-                    <h3>Actual Hours This Week</h3>
-                    <p id="weeklyActualHours">0.00</p>
-                </div>
-                <div class="stat">
-                    <h3>Hours Difference (Actual - Expected)</h3>
-                    <p id="weeklyHoursDifference">0.00</p>
                 </div>
             </div>
         </section>
@@ -382,6 +632,24 @@
                     <input id="goalAmount" type="number" min="0" step="1" value="1000">
                 </div>
             </div>
+            <div class="goal-progress-wrap">
+                <div class="goal-ring">
+                    <svg viewBox="0 0 140 140" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="goalRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#0f9d58"></stop>
+                                <stop offset="100%" stop-color="#1b79cf"></stop>
+                            </linearGradient>
+                        </defs>
+                        <circle class="goal-ring-bg" cx="70" cy="70" r="52"></circle>
+                        <circle id="plannerGoalRing" class="goal-ring-progress" cx="70" cy="70" r="52"></circle>
+                    </svg>
+                    <div class="goal-ring-label">
+                        <div id="plannerGoalProgress">0%</div>
+                        <p class="small">Goal Progress</p>
+                    </div>
+                </div>
+            </div>
             <div class="stats">
                 <div class="stat">
                     <h3>Income This Month</h3>
@@ -415,6 +683,8 @@
         </section>
     </div>
 
+    <div class="confetti-layer" id="confettiLayer"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -426,14 +696,15 @@
         const TABLE_NAME = "daily_tracker";
         const EXPENSE_TABLE = "expense_items";
         const EXPENSE_PAYMENT_TABLE = "expense_payments";
-        const WEEKLY_SCHEDULE_STORAGE_KEY = "work_tracker_weekly_schedule_v1";
 
         let supabaseClient = null;
         let monthlyChart = null;
         let thisMonthIncome = 0;
-        let thisWeekActualHours = 0;
         let currentExpenseItems = [];
         let currentPaidMap = new Map();
+        const GOAL_RING_RADIUS = 52;
+        const GOAL_RING_CIRCUMFERENCE = 2 * Math.PI * GOAL_RING_RADIUS;
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
         const ids = {
             workDate: document.getElementById("workDate"),
@@ -459,17 +730,6 @@
             thisYearMoney: document.getElementById("thisYearMoney"),
             thisYearHours: document.getElementById("thisYearHours"),
             thisYearAvgMonthly: document.getElementById("thisYearAvgMonthly"),
-            weeklyRangeLabel: document.getElementById("weeklyRangeLabel"),
-            expectedMon: document.getElementById("expectedMon"),
-            expectedTue: document.getElementById("expectedTue"),
-            expectedWed: document.getElementById("expectedWed"),
-            expectedThu: document.getElementById("expectedThu"),
-            expectedFri: document.getElementById("expectedFri"),
-            expectedSat: document.getElementById("expectedSat"),
-            expectedSun: document.getElementById("expectedSun"),
-            weeklyExpectedTotal: document.getElementById("weeklyExpectedTotal"),
-            weeklyActualHours: document.getElementById("weeklyActualHours"),
-            weeklyHoursDifference: document.getElementById("weeklyHoursDifference"),
             syncStatus: document.getElementById("syncStatus"),
             billName: document.getElementById("billName"),
             billAmount: document.getElementById("billAmount"),
@@ -486,8 +746,32 @@
             plannerRepairs: document.getElementById("plannerRepairs"),
             plannerSignups: document.getElementById("plannerSignups"),
             plannerHours: document.getElementById("plannerHours"),
+            plannerGoalRing: document.getElementById("plannerGoalRing"),
+            plannerGoalProgress: document.getElementById("plannerGoalProgress"),
             monthlyChart: document.getElementById("monthlyChart")
         };
+
+        const loadingTargets = [
+            ids.thisMonthMoney,
+            ids.thisMonthPhones,
+            ids.thisMonthReviews,
+            ids.thisMonthRate,
+            ids.lastMonthMoney,
+            ids.lastMonthPhones,
+            ids.lastMonthReviews,
+            ids.lastMonthRate,
+            ids.thisYearMoney,
+            ids.thisYearHours,
+            ids.thisYearAvgMonthly,
+            ids.plannerIncome,
+            ids.plannerNeeded,
+            ids.plannerRepairs,
+            ids.plannerSignups,
+            ids.plannerHours,
+            ids.totalBillsAmount,
+            ids.paidBillsAmount,
+            ids.remainingBillsAmount
+        ];
 
         const numberInputs = [
             ids.hoursWorked,
@@ -497,16 +781,6 @@
             ids.fiveStarReviews
         ];
 
-        const weeklyHourInputs = [
-            ids.expectedMon,
-            ids.expectedTue,
-            ids.expectedWed,
-            ids.expectedThu,
-            ids.expectedFri,
-            ids.expectedSat,
-            ids.expectedSun
-        ];
-
         function getValue(input) {
             const parsed = Number.parseFloat(input.value);
             return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
@@ -514,6 +788,143 @@
 
         function currency(value) {
             return `$${value.toFixed(2)}`;
+        }
+
+        function animateValue(element, target, formatter, duration = 560) {
+            const numericTarget = Number(target) || 0;
+
+            if (reduceMotion) {
+                element.textContent = formatter(numericTarget);
+                element.dataset.numericValue = String(numericTarget);
+                return;
+            }
+
+            const previousAnim = Number(element.dataset.animFrame || 0);
+            if (previousAnim) {
+                cancelAnimationFrame(previousAnim);
+            }
+
+            const start = Number.parseFloat(element.dataset.numericValue || "0") || 0;
+            const startTime = performance.now();
+
+            function step(now) {
+                const progress = Math.min(1, (now - startTime) / duration);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const value = start + ((numericTarget - start) * eased);
+                element.textContent = formatter(value);
+
+                if (progress < 1) {
+                    const raf = requestAnimationFrame(step);
+                    element.dataset.animFrame = String(raf);
+                } else {
+                    element.dataset.numericValue = String(numericTarget);
+                    element.dataset.animFrame = "0";
+                }
+            }
+
+            const raf = requestAnimationFrame(step);
+            element.dataset.animFrame = String(raf);
+        }
+
+        function setLoadingState(isLoading) {
+            loadingTargets.forEach((target) => {
+                if (!target) {
+                    return;
+                }
+                target.classList.toggle("loading-text", isLoading);
+            });
+        }
+
+        function triggerCardShimmer() {
+            if (reduceMotion) {
+                return;
+            }
+            document.querySelectorAll(".card").forEach((card) => {
+                card.classList.remove("shimmer-active");
+                void card.offsetWidth;
+                card.classList.add("shimmer-active");
+                setTimeout(() => card.classList.remove("shimmer-active"), 1500);
+            });
+        }
+
+        function triggerConfetti() {
+            if (reduceMotion) {
+                return;
+            }
+
+            const layer = document.getElementById("confettiLayer");
+            if (!layer) {
+                return;
+            }
+
+            const colors = ["#0f9d58", "#1b79cf", "#ffd166", "#ef476f", "#2a9d8f"];
+            const burstCount = 28;
+
+            for (let i = 0; i < burstCount; i += 1) {
+                const piece = document.createElement("span");
+                piece.className = "confetti-piece";
+                const centerX = window.innerWidth * 0.5;
+                const centerY = Math.min(window.innerHeight * 0.2, 170);
+                const spreadX = (Math.random() * 240) - 120;
+                const spreadY = (Math.random() * 180) + 110;
+
+                piece.style.left = `${centerX}px`;
+                piece.style.top = `${centerY}px`;
+                piece.style.background = colors[i % colors.length];
+                piece.style.setProperty("--dx", `${spreadX}px`);
+                piece.style.setProperty("--dy", `${spreadY}px`);
+                piece.style.setProperty("--rot", `${(Math.random() * 360) - 180}deg`);
+                layer.appendChild(piece);
+
+                setTimeout(() => piece.remove(), 900);
+            }
+        }
+
+        function setupButtonRipples() {
+            document.querySelectorAll("button").forEach((button) => {
+                button.addEventListener("click", (event) => {
+                    const rect = button.getBoundingClientRect();
+                    const ripple = document.createElement("span");
+                    const size = Math.max(rect.width, rect.height);
+                    ripple.className = "ripple";
+                    ripple.style.width = `${size}px`;
+                    ripple.style.height = `${size}px`;
+                    ripple.style.left = `${event.clientX - rect.left - (size / 2)}px`;
+                    ripple.style.top = `${event.clientY - rect.top - (size / 2)}px`;
+
+                    button.style.position = "relative";
+                    button.style.overflow = "hidden";
+                    button.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 650);
+                });
+            });
+        }
+
+        function setupCardParallax() {
+            if (reduceMotion || !window.matchMedia("(pointer: fine)").matches) {
+                return;
+            }
+
+            document.querySelectorAll(".card").forEach((card) => {
+                card.addEventListener("mousemove", (event) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = (event.clientX - rect.left) / rect.width;
+                    const y = (event.clientY - rect.top) / rect.height;
+                    const rotateY = (x - 0.5) * 2.6;
+                    const rotateX = (0.5 - y) * 2.2;
+                    card.style.transform = `perspective(1100px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+
+                card.addEventListener("mouseleave", () => {
+                    card.style.transform = "";
+                });
+            });
+        }
+
+        function setupCardReveal() {
+            document.querySelectorAll(".card").forEach((card, index) => {
+                card.style.setProperty("--reveal-delay", `${index * 0.08}s`);
+            });
         }
 
         function percent(numerator, denominator) {
@@ -550,27 +961,32 @@
 
         function renderDailySummary() {
             const daily = calculateFromInputs();
-            ids.dailyHourlyPay.textContent = currency(daily.hourlyPay);
-            ids.dailyCommission.textContent = currency(daily.commissionPay);
-            ids.dailyTotal.textContent = currency(daily.totalPay);
-            ids.dailyReviewRate.textContent = daily.reviewRate;
+            animateValue(ids.dailyHourlyPay, daily.hourlyPay, (value) => currency(value), 380);
+            animateValue(ids.dailyCommission, daily.commissionPay, (value) => currency(value), 380);
+            animateValue(ids.dailyTotal, daily.totalPay, (value) => currency(value), 420);
+            animateValue(
+                ids.dailyReviewRate,
+                daily.totalCustomers > 0 ? (daily.fiveStarReviews / daily.totalCustomers) * 100 : 0,
+                (value) => `${value.toFixed(2)}%`,
+                380
+            );
         }
 
         function clearMonthSummary() {
-            ids.thisMonthMoney.textContent = "$0.00";
-            ids.thisMonthPhones.textContent = "0";
-            ids.thisMonthReviews.textContent = "0";
-            ids.thisMonthRate.textContent = "0.00%";
-            ids.lastMonthMoney.textContent = "$0.00";
-            ids.lastMonthPhones.textContent = "0";
-            ids.lastMonthReviews.textContent = "0";
-            ids.lastMonthRate.textContent = "0.00%";
+            animateValue(ids.thisMonthMoney, 0, (value) => currency(value), 260);
+            animateValue(ids.thisMonthPhones, 0, (value) => `${Math.round(value)}`, 260);
+            animateValue(ids.thisMonthReviews, 0, (value) => `${Math.round(value)}`, 260);
+            animateValue(ids.thisMonthRate, 0, (value) => `${value.toFixed(2)}%`, 260);
+            animateValue(ids.lastMonthMoney, 0, (value) => currency(value), 260);
+            animateValue(ids.lastMonthPhones, 0, (value) => `${Math.round(value)}`, 260);
+            animateValue(ids.lastMonthReviews, 0, (value) => `${Math.round(value)}`, 260);
+            animateValue(ids.lastMonthRate, 0, (value) => `${value.toFixed(2)}%`, 260);
         }
 
         function clearYearSummary() {
-            ids.thisYearMoney.textContent = "$0.00";
-            ids.thisYearHours.textContent = "0.00";
-            ids.thisYearAvgMonthly.textContent = "$0.00";
+            animateValue(ids.thisYearMoney, 0, (value) => currency(value), 260);
+            animateValue(ids.thisYearHours, 0, (value) => value.toFixed(2), 260);
+            animateValue(ids.thisYearAvgMonthly, 0, (value) => currency(value), 260);
         }
 
         function setSyncStatus(text, isError = false) {
@@ -676,71 +1092,6 @@
             };
         }
 
-        function currentWeekRange(dateObj) {
-            const copy = new Date(dateObj);
-            const day = copy.getDay();
-            const mondayOffset = day === 0 ? -6 : 1 - day;
-            const start = new Date(copy.getFullYear(), copy.getMonth(), copy.getDate() + mondayOffset);
-            const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
-            return { start, end };
-        }
-
-        function getExpectedWeeklyHoursTotal() {
-            return weeklyHourInputs.reduce((sum, input) => sum + getValue(input), 0);
-        }
-
-        function renderWeeklyStats() {
-            const expected = getExpectedWeeklyHoursTotal();
-            const diff = thisWeekActualHours - expected;
-
-            ids.weeklyExpectedTotal.textContent = expected.toFixed(2);
-            ids.weeklyActualHours.textContent = thisWeekActualHours.toFixed(2);
-            ids.weeklyHoursDifference.textContent = diff.toFixed(2);
-        }
-
-        function loadWeeklySchedule() {
-            try {
-                const raw = localStorage.getItem(WEEKLY_SCHEDULE_STORAGE_KEY);
-                if (!raw) {
-                    renderWeeklyStats();
-                    return;
-                }
-
-                const parsed = JSON.parse(raw);
-                const values = [
-                    parsed.mon,
-                    parsed.tue,
-                    parsed.wed,
-                    parsed.thu,
-                    parsed.fri,
-                    parsed.sat,
-                    parsed.sun
-                ];
-
-                weeklyHourInputs.forEach((input, index) => {
-                    const value = Number(values[index]);
-                    input.value = Number.isFinite(value) && value >= 0 ? value : 0;
-                });
-            } catch {
-                // Ignore malformed local data and keep defaults.
-            }
-
-            renderWeeklyStats();
-        }
-
-        function saveWeeklySchedule() {
-            const payload = {
-                mon: getValue(ids.expectedMon),
-                tue: getValue(ids.expectedTue),
-                wed: getValue(ids.expectedWed),
-                thu: getValue(ids.expectedThu),
-                fri: getValue(ids.expectedFri),
-                sat: getValue(ids.expectedSat),
-                sun: getValue(ids.expectedSun)
-            };
-
-            localStorage.setItem(WEEKLY_SCHEDULE_STORAGE_KEY, JSON.stringify(payload));
-        }
 
         async function fetchRecordsInRange(startDate, endDate) {
             if (!supabaseClient) {
@@ -791,15 +1142,23 @@
             const lastMonth = summarizeMonth(lastRows, lastMonthKey);
             thisMonthIncome = thisMonth.money;
 
-            ids.thisMonthMoney.textContent = currency(thisMonth.money);
-            ids.thisMonthPhones.textContent = String(thisMonth.phones);
-            ids.thisMonthReviews.textContent = String(thisMonth.reviews);
-            ids.thisMonthRate.textContent = percent(thisMonth.reviews, thisMonth.customers);
+            animateValue(ids.thisMonthMoney, thisMonth.money, (value) => currency(value));
+            animateValue(ids.thisMonthPhones, thisMonth.phones, (value) => `${Math.round(value)}`);
+            animateValue(ids.thisMonthReviews, thisMonth.reviews, (value) => `${Math.round(value)}`);
+            animateValue(
+                ids.thisMonthRate,
+                thisMonth.customers > 0 ? (thisMonth.reviews / thisMonth.customers) * 100 : 0,
+                (value) => `${value.toFixed(2)}%`
+            );
 
-            ids.lastMonthMoney.textContent = currency(lastMonth.money);
-            ids.lastMonthPhones.textContent = String(lastMonth.phones);
-            ids.lastMonthReviews.textContent = String(lastMonth.reviews);
-            ids.lastMonthRate.textContent = percent(lastMonth.reviews, lastMonth.customers);
+            animateValue(ids.lastMonthMoney, lastMonth.money, (value) => currency(value));
+            animateValue(ids.lastMonthPhones, lastMonth.phones, (value) => `${Math.round(value)}`);
+            animateValue(ids.lastMonthReviews, lastMonth.reviews, (value) => `${Math.round(value)}`);
+            animateValue(
+                ids.lastMonthRate,
+                lastMonth.customers > 0 ? (lastMonth.reviews / lastMonth.customers) * 100 : 0,
+                (value) => `${value.toFixed(2)}%`
+            );
 
             renderPlanner();
         }
@@ -818,24 +1177,9 @@
             const yearlyHours = rows.reduce((sum, row) => sum + Number(row.hoursWorked || 0), 0);
             const monthCount = now.getMonth() + 1;
 
-            ids.thisYearMoney.textContent = currency(yearlyMoney);
-            ids.thisYearHours.textContent = yearlyHours.toFixed(2);
-            ids.thisYearAvgMonthly.textContent = currency(yearlyMoney / monthCount);
-        }
-
-        async function renderWeeklySummary() {
-            const { start, end } = currentWeekRange(new Date());
-            ids.weeklyRangeLabel.textContent = `Week: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-
-            if (!supabaseClient) {
-                thisWeekActualHours = 0;
-                renderWeeklyStats();
-                return;
-            }
-
-            const rows = await fetchRecordsInRange(formatDateKey(start), formatDateKey(end));
-            thisWeekActualHours = rows.reduce((sum, row) => sum + Number(row.hoursWorked || 0), 0);
-            renderWeeklyStats();
+            animateValue(ids.thisYearMoney, yearlyMoney, (value) => currency(value));
+            animateValue(ids.thisYearHours, yearlyHours, (value) => value.toFixed(2));
+            animateValue(ids.thisYearAvgMonthly, yearlyMoney / monthCount, (value) => currency(value));
         }
 
         async function loadExpenseItems() {
@@ -926,9 +1270,9 @@
             }).join("");
 
             const totals = getExpenseTotals();
-            ids.totalBillsAmount.textContent = currency(totals.total);
-            ids.paidBillsAmount.textContent = currency(totals.paid);
-            ids.remainingBillsAmount.textContent = currency(totals.remaining);
+            animateValue(ids.totalBillsAmount, totals.total, (value) => currency(value));
+            animateValue(ids.paidBillsAmount, totals.paid, (value) => currency(value));
+            animateValue(ids.remainingBillsAmount, totals.remaining, (value) => currency(value));
             renderPlanner();
         }
 
@@ -1010,12 +1354,18 @@
             const billsTotal = getExpenseTotals().total;
             const requiredIncome = billsTotal + goal;
             const needed = Math.max(0, requiredIncome - thisMonthIncome);
+            const progress = requiredIncome > 0 ? Math.min(1, thisMonthIncome / requiredIncome) : 1;
+            const progressPercent = progress * 100;
 
-            ids.plannerIncome.textContent = currency(thisMonthIncome);
-            ids.plannerNeeded.textContent = currency(needed);
-            ids.plannerRepairs.textContent = String(Math.ceil(needed / PAY_PER_PHONE));
-            ids.plannerSignups.textContent = String(Math.ceil(needed / PAY_PER_SIGNUP));
-            ids.plannerHours.textContent = (needed / PAY_PER_HOUR).toFixed(2);
+            animateValue(ids.plannerIncome, thisMonthIncome, (value) => currency(value));
+            animateValue(ids.plannerNeeded, needed, (value) => currency(value));
+            animateValue(ids.plannerRepairs, Math.ceil(needed / PAY_PER_PHONE), (value) => `${Math.round(value)}`);
+            animateValue(ids.plannerSignups, Math.ceil(needed / PAY_PER_SIGNUP), (value) => `${Math.round(value)}`);
+            animateValue(ids.plannerHours, needed / PAY_PER_HOUR, (value) => value.toFixed(2));
+
+            ids.plannerGoalRing.style.strokeDasharray = `${GOAL_RING_CIRCUMFERENCE}`;
+            ids.plannerGoalRing.style.strokeDashoffset = `${GOAL_RING_CIRCUMFERENCE * (1 - progress)}`;
+            animateValue(ids.plannerGoalProgress, progressPercent, (value) => `${Math.round(value)}%`, 420);
         }
 
         async function render12MonthChart() {
@@ -1192,10 +1542,13 @@
                 return;
             }
 
+            setLoadingState(true);
             await renderMonthSummary();
             await renderYearSummary();
-            await renderWeeklySummary();
             await render12MonthChart();
+            setLoadingState(false);
+            triggerCardShimmer();
+            triggerConfetti();
             alert("Saved.");
         }
 
@@ -1213,12 +1566,6 @@
         ids.goalAmount.addEventListener("input", renderPlanner);
         ids.workDate.addEventListener("change", async () => {
             await loadSelectedDateData();
-        });
-        weeklyHourInputs.forEach((input) => {
-            input.addEventListener("input", () => {
-                saveWeeklySchedule();
-                renderWeeklyStats();
-            });
         });
         numberInputs.forEach((input) => input.addEventListener("input", renderDailySummary));
         ids.expenseList.addEventListener("change", async (event) => {
@@ -1242,25 +1589,29 @@
         });
 
         async function initializeApp() {
+            setupCardReveal();
+            setupCardParallax();
+            setupButtonRipples();
             setDefaultDate();
-            loadWeeklySchedule();
             renderDailySummary();
             clearMonthSummary();
             clearYearSummary();
             renderPlanner();
-            renderWeeklyStats();
 
             if (initSupabase()) {
                 try {
+                    setLoadingState(true);
                     await Promise.all([
                         loadSelectedDateData(),
                         renderMonthSummary(),
                         renderYearSummary(),
-                        renderWeeklySummary(),
                         refreshExpenses(),
                         render12MonthChart()
                     ]);
+                    setLoadingState(false);
+                    triggerCardShimmer();
                 } catch (error) {
+                    setLoadingState(false);
                     setSyncStatus(`Cloud sync error: ${error.message}`, true);
                 }
             }
