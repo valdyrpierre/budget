@@ -242,6 +242,10 @@
                     <p class="money" id="thisMonthMoney">$0.00</p>
                 </div>
                 <div class="stat">
+                    <h3>This Month Phones Repaired</h3>
+                    <p id="thisMonthPhones">0</p>
+                </div>
+                <div class="stat">
                     <h3>This Month 5-Star Reviews</h3>
                     <p id="thisMonthReviews">0</p>
                 </div>
@@ -254,12 +258,84 @@
                     <p class="money" id="lastMonthMoney">$0.00</p>
                 </div>
                 <div class="stat">
+                    <h3>Last Month Phones Repaired</h3>
+                    <p id="lastMonthPhones">0</p>
+                </div>
+                <div class="stat">
                     <h3>Last Month 5-Star Reviews</h3>
                     <p id="lastMonthReviews">0</p>
                 </div>
                 <div class="stat">
                     <h3>Last Month 5-Star %</h3>
                     <p id="lastMonthRate">0.00%</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Year Totals</h2>
+            <div class="stats">
+                <div class="stat">
+                    <h3>This Year Money</h3>
+                    <p class="money" id="thisYearMoney">$0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>This Year Hours Worked</h3>
+                    <p id="thisYearHours">0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Average Per Month</h3>
+                    <p id="thisYearAvgMonthly">$0.00</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Weekly Schedule</h2>
+            <p class="small" id="weeklyRangeLabel">Current week</p>
+            <div class="grid">
+                <div>
+                    <label for="expectedMon">Mon expected hours</label>
+                    <input id="expectedMon" type="number" min="0" step="0.25" value="0">
+                </div>
+                <div>
+                    <label for="expectedTue">Tue expected hours</label>
+                    <input id="expectedTue" type="number" min="0" step="0.25" value="0">
+                </div>
+                <div>
+                    <label for="expectedWed">Wed expected hours</label>
+                    <input id="expectedWed" type="number" min="0" step="0.25" value="0">
+                </div>
+                <div>
+                    <label for="expectedThu">Thu expected hours</label>
+                    <input id="expectedThu" type="number" min="0" step="0.25" value="0">
+                </div>
+                <div>
+                    <label for="expectedFri">Fri expected hours</label>
+                    <input id="expectedFri" type="number" min="0" step="0.25" value="0">
+                </div>
+                <div>
+                    <label for="expectedSat">Sat expected hours</label>
+                    <input id="expectedSat" type="number" min="0" step="0.25" value="0">
+                </div>
+                <div>
+                    <label for="expectedSun">Sun expected hours</label>
+                    <input id="expectedSun" type="number" min="0" step="0.25" value="0">
+                </div>
+            </div>
+            <p class="small">Edit these anytime to set your planned weekly schedule.</p>
+            <div class="stats">
+                <div class="stat">
+                    <h3>Expected Weekly Hours</h3>
+                    <p id="weeklyExpectedTotal">0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Actual Hours This Week</h3>
+                    <p id="weeklyActualHours">0.00</p>
+                </div>
+                <div class="stat">
+                    <h3>Hours Difference (Actual - Expected)</h3>
+                    <p id="weeklyHoursDifference">0.00</p>
                 </div>
             </div>
         </section>
@@ -350,10 +426,12 @@
         const TABLE_NAME = "daily_tracker";
         const EXPENSE_TABLE = "expense_items";
         const EXPENSE_PAYMENT_TABLE = "expense_payments";
+        const WEEKLY_SCHEDULE_STORAGE_KEY = "work_tracker_weekly_schedule_v1";
 
         let supabaseClient = null;
         let monthlyChart = null;
         let thisMonthIncome = 0;
+        let thisWeekActualHours = 0;
         let currentExpenseItems = [];
         let currentPaidMap = new Map();
 
@@ -371,11 +449,27 @@
             dailyTotal: document.getElementById("dailyTotal"),
             dailyReviewRate: document.getElementById("dailyReviewRate"),
             thisMonthMoney: document.getElementById("thisMonthMoney"),
+            thisMonthPhones: document.getElementById("thisMonthPhones"),
             thisMonthReviews: document.getElementById("thisMonthReviews"),
             thisMonthRate: document.getElementById("thisMonthRate"),
             lastMonthMoney: document.getElementById("lastMonthMoney"),
+            lastMonthPhones: document.getElementById("lastMonthPhones"),
             lastMonthReviews: document.getElementById("lastMonthReviews"),
             lastMonthRate: document.getElementById("lastMonthRate"),
+            thisYearMoney: document.getElementById("thisYearMoney"),
+            thisYearHours: document.getElementById("thisYearHours"),
+            thisYearAvgMonthly: document.getElementById("thisYearAvgMonthly"),
+            weeklyRangeLabel: document.getElementById("weeklyRangeLabel"),
+            expectedMon: document.getElementById("expectedMon"),
+            expectedTue: document.getElementById("expectedTue"),
+            expectedWed: document.getElementById("expectedWed"),
+            expectedThu: document.getElementById("expectedThu"),
+            expectedFri: document.getElementById("expectedFri"),
+            expectedSat: document.getElementById("expectedSat"),
+            expectedSun: document.getElementById("expectedSun"),
+            weeklyExpectedTotal: document.getElementById("weeklyExpectedTotal"),
+            weeklyActualHours: document.getElementById("weeklyActualHours"),
+            weeklyHoursDifference: document.getElementById("weeklyHoursDifference"),
             syncStatus: document.getElementById("syncStatus"),
             billName: document.getElementById("billName"),
             billAmount: document.getElementById("billAmount"),
@@ -401,6 +495,16 @@
             ids.insuranceSignups,
             ids.totalCustomers,
             ids.fiveStarReviews
+        ];
+
+        const weeklyHourInputs = [
+            ids.expectedMon,
+            ids.expectedTue,
+            ids.expectedWed,
+            ids.expectedThu,
+            ids.expectedFri,
+            ids.expectedSat,
+            ids.expectedSun
         ];
 
         function getValue(input) {
@@ -454,11 +558,19 @@
 
         function clearMonthSummary() {
             ids.thisMonthMoney.textContent = "$0.00";
+            ids.thisMonthPhones.textContent = "0";
             ids.thisMonthReviews.textContent = "0";
             ids.thisMonthRate.textContent = "0.00%";
             ids.lastMonthMoney.textContent = "$0.00";
+            ids.lastMonthPhones.textContent = "0";
             ids.lastMonthReviews.textContent = "0";
             ids.lastMonthRate.textContent = "0.00%";
+        }
+
+        function clearYearSummary() {
+            ids.thisYearMoney.textContent = "$0.00";
+            ids.thisYearHours.textContent = "0.00";
+            ids.thisYearAvgMonthly.textContent = "$0.00";
         }
 
         function setSyncStatus(text, isError = false) {
@@ -523,6 +635,7 @@
 
         function summarizeMonth(records, monthKey) {
             let money = 0;
+            let phones = 0;
             let reviews = 0;
             let customers = 0;
 
@@ -531,11 +644,12 @@
                     continue;
                 }
                 money += Number(item.totalPay || 0);
+                phones += Number(item.phonesRepaired || 0);
                 reviews += Number(item.fiveStarReviews || 0);
                 customers += Number(item.totalCustomers || 0);
             }
 
-            return { money, reviews, customers };
+            return { money, phones, reviews, customers };
         }
 
         function monthRange(dateObj) {
@@ -546,6 +660,88 @@
             return { startKey, endKey };
         }
 
+        function formatDateKey(dateObj) {
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+            const dd = String(dateObj.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function yearRange(dateObj) {
+            const start = new Date(dateObj.getFullYear(), 0, 1);
+            const end = new Date(dateObj.getFullYear(), 11, 31);
+            return {
+                startKey: formatDateKey(start),
+                endKey: formatDateKey(end)
+            };
+        }
+
+        function currentWeekRange(dateObj) {
+            const copy = new Date(dateObj);
+            const day = copy.getDay();
+            const mondayOffset = day === 0 ? -6 : 1 - day;
+            const start = new Date(copy.getFullYear(), copy.getMonth(), copy.getDate() + mondayOffset);
+            const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+            return { start, end };
+        }
+
+        function getExpectedWeeklyHoursTotal() {
+            return weeklyHourInputs.reduce((sum, input) => sum + getValue(input), 0);
+        }
+
+        function renderWeeklyStats() {
+            const expected = getExpectedWeeklyHoursTotal();
+            const diff = thisWeekActualHours - expected;
+
+            ids.weeklyExpectedTotal.textContent = expected.toFixed(2);
+            ids.weeklyActualHours.textContent = thisWeekActualHours.toFixed(2);
+            ids.weeklyHoursDifference.textContent = diff.toFixed(2);
+        }
+
+        function loadWeeklySchedule() {
+            try {
+                const raw = localStorage.getItem(WEEKLY_SCHEDULE_STORAGE_KEY);
+                if (!raw) {
+                    renderWeeklyStats();
+                    return;
+                }
+
+                const parsed = JSON.parse(raw);
+                const values = [
+                    parsed.mon,
+                    parsed.tue,
+                    parsed.wed,
+                    parsed.thu,
+                    parsed.fri,
+                    parsed.sat,
+                    parsed.sun
+                ];
+
+                weeklyHourInputs.forEach((input, index) => {
+                    const value = Number(values[index]);
+                    input.value = Number.isFinite(value) && value >= 0 ? value : 0;
+                });
+            } catch {
+                // Ignore malformed local data and keep defaults.
+            }
+
+            renderWeeklyStats();
+        }
+
+        function saveWeeklySchedule() {
+            const payload = {
+                mon: getValue(ids.expectedMon),
+                tue: getValue(ids.expectedTue),
+                wed: getValue(ids.expectedWed),
+                thu: getValue(ids.expectedThu),
+                fri: getValue(ids.expectedFri),
+                sat: getValue(ids.expectedSat),
+                sun: getValue(ids.expectedSun)
+            };
+
+            localStorage.setItem(WEEKLY_SCHEDULE_STORAGE_KEY, JSON.stringify(payload));
+        }
+
         async function fetchRecordsInRange(startDate, endDate) {
             if (!supabaseClient) {
                 return [];
@@ -553,7 +749,7 @@
 
             const { data, error } = await supabaseClient
                 .from(TABLE_NAME)
-                .select("day_date, total_pay, five_star_reviews, total_customers")
+                .select("day_date, total_pay, hours_worked, phones_repaired, five_star_reviews, total_customers")
                 .gte("day_date", startDate)
                 .lte("day_date", endDate)
                 .order("day_date", { ascending: true });
@@ -565,6 +761,8 @@
             return (data || []).map((item) => ({
                 day_date: item.day_date,
                 totalPay: Number(item.total_pay || 0),
+                hoursWorked: Number(item.hours_worked || 0),
+                phonesRepaired: Number(item.phones_repaired || 0),
                 fiveStarReviews: Number(item.five_star_reviews || 0),
                 totalCustomers: Number(item.total_customers || 0)
             }));
@@ -594,14 +792,50 @@
             thisMonthIncome = thisMonth.money;
 
             ids.thisMonthMoney.textContent = currency(thisMonth.money);
+            ids.thisMonthPhones.textContent = String(thisMonth.phones);
             ids.thisMonthReviews.textContent = String(thisMonth.reviews);
             ids.thisMonthRate.textContent = percent(thisMonth.reviews, thisMonth.customers);
 
             ids.lastMonthMoney.textContent = currency(lastMonth.money);
+            ids.lastMonthPhones.textContent = String(lastMonth.phones);
             ids.lastMonthReviews.textContent = String(lastMonth.reviews);
             ids.lastMonthRate.textContent = percent(lastMonth.reviews, lastMonth.customers);
 
             renderPlanner();
+        }
+
+        async function renderYearSummary() {
+            if (!supabaseClient) {
+                clearYearSummary();
+                return;
+            }
+
+            const now = new Date();
+            const range = yearRange(now);
+            const rows = await fetchRecordsInRange(range.startKey, range.endKey);
+
+            const yearlyMoney = rows.reduce((sum, row) => sum + Number(row.totalPay || 0), 0);
+            const yearlyHours = rows.reduce((sum, row) => sum + Number(row.hoursWorked || 0), 0);
+            const monthCount = now.getMonth() + 1;
+
+            ids.thisYearMoney.textContent = currency(yearlyMoney);
+            ids.thisYearHours.textContent = yearlyHours.toFixed(2);
+            ids.thisYearAvgMonthly.textContent = currency(yearlyMoney / monthCount);
+        }
+
+        async function renderWeeklySummary() {
+            const { start, end } = currentWeekRange(new Date());
+            ids.weeklyRangeLabel.textContent = `Week: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+
+            if (!supabaseClient) {
+                thisWeekActualHours = 0;
+                renderWeeklyStats();
+                return;
+            }
+
+            const rows = await fetchRecordsInRange(formatDateKey(start), formatDateKey(end));
+            thisWeekActualHours = rows.reduce((sum, row) => sum + Number(row.hoursWorked || 0), 0);
+            renderWeeklyStats();
         }
 
         async function loadExpenseItems() {
@@ -959,6 +1193,8 @@
             }
 
             await renderMonthSummary();
+            await renderYearSummary();
+            await renderWeeklySummary();
             await render12MonthChart();
             alert("Saved.");
         }
@@ -977,6 +1213,12 @@
         ids.goalAmount.addEventListener("input", renderPlanner);
         ids.workDate.addEventListener("change", async () => {
             await loadSelectedDateData();
+        });
+        weeklyHourInputs.forEach((input) => {
+            input.addEventListener("input", () => {
+                saveWeeklySchedule();
+                renderWeeklyStats();
+            });
         });
         numberInputs.forEach((input) => input.addEventListener("input", renderDailySummary));
         ids.expenseList.addEventListener("change", async (event) => {
@@ -1001,15 +1243,20 @@
 
         async function initializeApp() {
             setDefaultDate();
+            loadWeeklySchedule();
             renderDailySummary();
             clearMonthSummary();
+            clearYearSummary();
             renderPlanner();
+            renderWeeklyStats();
 
             if (initSupabase()) {
                 try {
                     await Promise.all([
                         loadSelectedDateData(),
                         renderMonthSummary(),
+                        renderYearSummary(),
+                        renderWeeklySummary(),
                         refreshExpenses(),
                         render12MonthChart()
                     ]);
