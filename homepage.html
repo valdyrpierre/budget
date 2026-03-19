@@ -6,17 +6,17 @@
     <title>Budget Tracker</title>
     <style>
         :root {
-            --bg: #f6fbf8;
-            --bg-accent: #e8f5ec;
-            --card: rgba(255, 255, 255, 0.88);
-            --text: #142018;
-            --muted: #4d6256;
-            --accent: #0f9d58;
-            --accent-deep: #0b7c46;
-            --success: #137447;
-            --border: #cde1d4;
-            --glow: rgba(15, 157, 88, 0.22);
-            --shadow: 0 14px 35px rgba(8, 42, 23, 0.1);
+            --bg: #0b1220;
+            --bg-accent: #05080f;
+            --card: rgba(16, 24, 40, 0.84);
+            --text: #e9f1ff;
+            --muted: #9fb3cc;
+            --accent: #2f81f7;
+            --accent-deep: #1d4ed8;
+            --success: #5fa8ff;
+            --border: #26344d;
+            --glow: rgba(47, 129, 247, 0.25);
+            --shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
         }
 
         * {
@@ -28,8 +28,8 @@
             margin: 0;
             min-height: 100vh;
             background:
-                radial-gradient(circle at 12% 10%, rgba(15, 157, 88, 0.16), transparent 32%),
-                radial-gradient(circle at 90% 20%, rgba(10, 112, 199, 0.1), transparent 28%),
+                radial-gradient(circle at 12% 10%, rgba(47, 129, 247, 0.2), transparent 32%),
+                radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.12), transparent 28%),
                 linear-gradient(155deg, var(--bg), var(--bg-accent));
             color: var(--text);
             overflow-x: hidden;
@@ -50,13 +50,13 @@
         body::before {
             top: -120px;
             left: -90px;
-            background: radial-gradient(circle, rgba(15, 157, 88, 0.19), rgba(15, 157, 88, 0));
+            background: radial-gradient(circle, rgba(47, 129, 247, 0.22), rgba(47, 129, 247, 0));
         }
 
         body::after {
             right: -120px;
             bottom: -140px;
-            background: radial-gradient(circle, rgba(27, 121, 207, 0.15), rgba(27, 121, 207, 0));
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0));
             animation-delay: -8s;
         }
 
@@ -80,7 +80,7 @@
             margin: 0 0 8px;
             font-size: clamp(1.7rem, 2.8vw, 2.35rem);
             letter-spacing: 0.02em;
-            color: #0f4229;
+            color: #d9e8ff;
             text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
         }
 
@@ -156,7 +156,7 @@
             margin-bottom: 6px;
             font-weight: 600;
             font-size: 0.92rem;
-            color: #264235;
+            color: #c8d8f0;
         }
 
         input,
@@ -169,12 +169,13 @@
         }
 
         input {
-            background: rgba(255, 255, 255, 0.88);
+            background: rgba(9, 14, 24, 0.9);
+            color: #e9f1ff;
             transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
         }
 
         input:focus {
-            outline: 2px solid #c4f1d9;
+            outline: 2px solid #2a3f5f;
             border-color: var(--accent);
             box-shadow: 0 0 0 4px var(--glow);
             transform: translateY(-1px);
@@ -193,13 +194,13 @@
             border: none;
             color: white;
             background: linear-gradient(140deg, var(--accent), var(--accent-deep));
-            box-shadow: 0 7px 16px rgba(15, 157, 88, 0.3);
+            box-shadow: 0 7px 16px rgba(37, 99, 235, 0.35);
             transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
         }
 
         button:hover {
             transform: translateY(-1px);
-            box-shadow: 0 10px 20px rgba(15, 157, 88, 0.34);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
             filter: saturate(1.05);
         }
 
@@ -208,8 +209,8 @@
         }
 
         button.secondary {
-            background: linear-gradient(140deg, #6f7f8f, #50606f);
-            box-shadow: 0 7px 16px rgba(58, 71, 85, 0.25);
+            background: linear-gradient(140deg, #1f2937, #111827);
+            box-shadow: 0 7px 16px rgba(0, 0, 0, 0.35);
         }
 
         .stats {
@@ -222,14 +223,14 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 12px;
-            background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(238, 248, 242, 0.75));
+            background: linear-gradient(160deg, rgba(13, 19, 32, 0.95), rgba(18, 28, 47, 0.78));
             transition: transform 0.2s ease, border-color 0.2s ease;
             position: relative;
         }
 
         .stat:hover {
             transform: translateY(-2px);
-            border-color: #b7d9c5;
+            border-color: #35507a;
         }
 
         .stat h3 {
@@ -260,7 +261,7 @@
             inset: -1px;
             border-radius: inherit;
             border: 1px solid transparent;
-            background: linear-gradient(130deg, rgba(15, 157, 88, 0.85), rgba(27, 121, 207, 0.45)) border-box;
+            background: linear-gradient(130deg, rgba(47, 129, 247, 0.9), rgba(30, 58, 138, 0.6)) border-box;
             mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
             mask-composite: exclude;
             -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
@@ -294,7 +295,7 @@
             border-radius: 12px;
             padding: 10px;
             margin-bottom: 8px;
-            background: linear-gradient(150deg, #fcfefd, #eef7f1);
+            background: linear-gradient(150deg, #0b1220, #101a2f);
         }
 
         .expense-name {
@@ -321,12 +322,12 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 12px;
-            background: linear-gradient(160deg, #fcfffd, #edf7f1);
+            background: linear-gradient(160deg, #0b1220, #0f1b33);
         }
 
         h2 {
             margin-top: 2px;
-            color: #163424;
+            color: #dbeafe;
             font-size: 1.22rem;
             letter-spacing: 0.01em;
         }
@@ -372,7 +373,7 @@
         .goal-ring-label {
             position: absolute;
             text-align: center;
-            color: #1d4f35;
+            color: #dbeafe;
             font-weight: 700;
         }
 
@@ -384,7 +385,7 @@
         .loading-text {
             color: transparent !important;
             border-radius: 8px;
-            background: linear-gradient(90deg, rgba(207, 226, 214, 0.45), rgba(236, 247, 240, 0.9), rgba(207, 226, 214, 0.45));
+            background: linear-gradient(90deg, rgba(30, 48, 78, 0.45), rgba(64, 95, 145, 0.9), rgba(30, 48, 78, 0.45));
             background-size: 220% 100%;
             animation: skeletonSweep 1.2s ease infinite;
             min-height: 1.1em;
@@ -403,7 +404,7 @@
             position: absolute;
             border-radius: 50%;
             transform: scale(0);
-            background: rgba(255, 255, 255, 0.48);
+            background: rgba(96, 165, 250, 0.42);
             animation: rippleWave 650ms ease-out;
             pointer-events: none;
         }
@@ -637,8 +638,8 @@
                     <svg viewBox="0 0 140 140" aria-hidden="true">
                         <defs>
                             <linearGradient id="goalRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#0f9d58"></stop>
-                                <stop offset="100%" stop-color="#1b79cf"></stop>
+                                <stop offset="0%" stop-color="#2f81f7"></stop>
+                                <stop offset="100%" stop-color="#1d4ed8"></stop>
                             </linearGradient>
                         </defs>
                         <circle class="goal-ring-bg" cx="70" cy="70" r="52"></circle>
@@ -857,7 +858,7 @@
                 return;
             }
 
-            const colors = ["#0f9d58", "#1b79cf", "#ffd166", "#ef476f", "#2a9d8f"];
+            const colors = ["#2f81f7", "#60a5fa", "#1d4ed8", "#93c5fd", "#0f172a"];
             const burstCount = 28;
 
             for (let i = 0; i < burstCount; i += 1) {
@@ -1423,8 +1424,8 @@
                         {
                             label: "Money ($)",
                             data: moneyData,
-                            backgroundColor: "rgba(31, 142, 241, 0.55)",
-                            borderColor: "rgba(31, 142, 241, 1)",
+                            backgroundColor: "rgba(47, 129, 247, 0.55)",
+                            borderColor: "rgba(29, 78, 216, 1)",
                             borderWidth: 1,
                             yAxisID: "y"
                         },
@@ -1432,8 +1433,8 @@
                             label: "5-Star Rate (%)",
                             data: rateData,
                             type: "line",
-                            borderColor: "rgba(26, 155, 75, 1)",
-                            backgroundColor: "rgba(26, 155, 75, 0.2)",
+                            borderColor: "rgba(147, 197, 253, 1)",
+                            backgroundColor: "rgba(147, 197, 253, 0.2)",
                             tension: 0.25,
                             yAxisID: "y1"
                         }
