@@ -531,20 +531,8 @@
                     <h3>This Week Earnings</h3>
                     <p class="money" id="quickWeekIncome">$0.00</p>
                 </div>
-                <div class="stat">
-                    <h3>This Week Forecast</h3>
-                    <p id="quickWeekForecast">$0.00</p>
-                </div>
-                <div class="stat">
-                    <h3>Difference</h3>
-                    <p id="quickWeekDifference">$0.00</p>
-                </div>
-                <div class="stat">
-                    <h3>Pace vs Forecast</h3>
-                    <p id="quickWeekPace">0%</p>
-                </div>
             </div>
-            <p class="small">Compares your current-week earnings to the forecast for this week of the month.</p>
+            <p class="small">Shows your current-week earnings from the days you saved.</p>
         </section>
 
         <section class="card">
@@ -776,74 +764,6 @@
 
         
         <section class="card">
-            <h2>Commission Rate Calculator</h2>
-            <p class="small">Test alternative commission rates using today's phones + signups values.</p>
-            <div class="grid">
-                <div>
-                    <label for="altPhoneRate">Phone commission ($ each)</label>
-                    <input id="altPhoneRate" type="number" min="0" step="0.01" value="5">
-                </div>
-                <div>
-                    <label for="altSignupRate">Signup commission ($ each)</label>
-                    <input id="altSignupRate" type="number" min="0" step="0.01" value="35">
-                </div>
-            </div>
-            <div class="stats">
-                <div class="stat">
-                    <h3>Current Commission (Today)</h3>
-                    <p id="commissionCurrent">$0.00</p>
-                </div>
-                <div class="stat">
-                    <h3>Alt Commission (Today)</h3>
-                    <p id="commissionAlt">$0.00</p>
-                </div>
-                <div class="stat">
-                    <h3>Difference</h3>
-                    <p id="commissionDifference">$0.00</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="card">
-            <h2>Monthly Target Tracker</h2>
-            <p class="small">Set monthly targets and track progress in real time.</p>
-            <div class="grid">
-                <div>
-                    <label for="targetPhones">Target phones repaired</label>
-                    <input id="targetPhones" type="number" min="0" step="1" value="100">
-                </div>
-                <div>
-                    <label for="targetSignups">Target signups</label>
-                    <input id="targetSignups" type="number" min="0" step="1" value="25">
-                </div>
-                <div>
-                    <label for="targetIncome">Target monthly income ($)</label>
-                    <input id="targetIncome" type="number" min="0" step="1" value="3000">
-                </div>
-            </div>
-            <div class="stats">
-                <div class="stat">
-                    <h3>Phones Progress</h3>
-                    <p id="targetPhonesText">0 / 0 (0%)</p>
-                    <div class="progress-track"><div id="targetPhonesBar" class="progress-fill"></div></div>
-                    <p class="progress-meta" id="targetPhonesMeta">Set a target to begin tracking.</p>
-                </div>
-                <div class="stat">
-                    <h3>Signups Progress</h3>
-                    <p id="targetSignupsText">0 / 0 (0%)</p>
-                    <div class="progress-track"><div id="targetSignupsBar" class="progress-fill"></div></div>
-                    <p class="progress-meta" id="targetSignupsMeta">Set a target to begin tracking.</p>
-                </div>
-                <div class="stat">
-                    <h3>Income Progress</h3>
-                    <p id="targetIncomeText">$0.00 / $0.00 (0%)</p>
-                    <div class="progress-track"><div id="targetIncomeBar" class="progress-fill"></div></div>
-                    <p class="progress-meta" id="targetIncomeMeta">Set a target to begin tracking.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="card">
             <h2>Last 12 Months Graph</h2>
             <div class="chart-wrap">
                 <canvas id="monthlyChart" height="120"></canvas>
@@ -898,9 +818,6 @@
             saveDailySpendingBtn: document.getElementById("saveDailySpendingBtn"),
             dailySpendingSummary: document.getElementById("dailySpendingSummary"),
             quickWeekIncome: document.getElementById("quickWeekIncome"),
-            quickWeekForecast: document.getElementById("quickWeekForecast"),
-            quickWeekDifference: document.getElementById("quickWeekDifference"),
-            quickWeekPace: document.getElementById("quickWeekPace"),
             thisMonthMoney: document.getElementById("thisMonthMoney"),
             thisMonthPhones: document.getElementById("thisMonthPhones"),
             thisMonthReviews: document.getElementById("thisMonthReviews"),
@@ -930,34 +847,7 @@
             plannerHours: document.getElementById("plannerHours"),
             plannerGoalRing: document.getElementById("plannerGoalRing"),
             plannerGoalProgress: document.getElementById("plannerGoalProgress"),
-            monthlyChart: document.getElementById("monthlyChart"),
-            weekHours1: document.getElementById("weekHours1"),
-            weekHours2: document.getElementById("weekHours2"),
-            weekHours3: document.getElementById("weekHours3"),
-            weekHours4: document.getElementById("weekHours4"),
-            weekHours5: document.getElementById("weekHours5"),
-            forecastTotalHours: document.getElementById("forecastTotalHours"),
-            forecastHourlyPay: document.getElementById("forecastHourlyPay"),
-            saveForecastBtn: document.getElementById("saveForecastBtn"),
-            clearForecastBtn: document.getElementById("clearForecastBtn"),
-            forecastStatus: document.getElementById("forecastStatus"),
-            altPhoneRate: document.getElementById("altPhoneRate"),
-            altSignupRate: document.getElementById("altSignupRate"),
-            commissionCurrent: document.getElementById("commissionCurrent"),
-            commissionAlt: document.getElementById("commissionAlt"),
-            commissionDifference: document.getElementById("commissionDifference"),
-            targetPhones: document.getElementById("targetPhones"),
-            targetSignups: document.getElementById("targetSignups"),
-            targetIncome: document.getElementById("targetIncome"),
-            targetPhonesText: document.getElementById("targetPhonesText"),
-            targetSignupsText: document.getElementById("targetSignupsText"),
-            targetIncomeText: document.getElementById("targetIncomeText"),
-            targetPhonesBar: document.getElementById("targetPhonesBar"),
-            targetSignupsBar: document.getElementById("targetSignupsBar"),
-            targetIncomeBar: document.getElementById("targetIncomeBar"),
-            targetPhonesMeta: document.getElementById("targetPhonesMeta"),
-            targetSignupsMeta: document.getElementById("targetSignupsMeta"),
-            targetIncomeMeta: document.getElementById("targetIncomeMeta")
+            monthlyChart: document.getElementById("monthlyChart")
         };
 
         const loadingTargets = [
@@ -1012,17 +902,6 @@
                 startKey: formatDateKey(start),
                 endKey: formatDateKey(end)
             };
-        }
-
-        function getCurrentWeekIndexInMonth() {
-            const now = new Date();
-            return Math.min(5, Math.floor((now.getDate() - 1) / 7) + 1);
-        }
-
-        function getForecastHoursForWeek(weekIndex) {
-            const map = [ids.weekHours1, ids.weekHours2, ids.weekHours3, ids.weekHours4, ids.weekHours5];
-            const target = map[weekIndex - 1];
-            return target ? getValue(target) : 0;
         }
 
         function noteStorageKey(dateString) {
@@ -1161,30 +1040,6 @@
             const expense = Number(data.expense) || 0;
             ids.dailySpendingSummary.textContent = currency(expense);
             ids.dailySpendingAmount.value = expense > 0 ? String(expense) : "";
-        }
-
-        function saveTargetsLocal() {
-            const targetData = {
-                phones: Math.max(0, Math.round(getValue(ids.targetPhones))),
-                signups: Math.max(0, Math.round(getValue(ids.targetSignups))),
-                income: Math.max(0, getValue(ids.targetIncome))
-            };
-            localStorage.setItem("monthly_targets", JSON.stringify(targetData));
-        }
-
-        function loadTargetsLocal() {
-            try {
-                const raw = localStorage.getItem("monthly_targets");
-                if (!raw) {
-                    return;
-                }
-                const data = JSON.parse(raw);
-                ids.targetPhones.value = Number.isFinite(Number(data.phones)) ? Number(data.phones) : ids.targetPhones.value;
-                ids.targetSignups.value = Number.isFinite(Number(data.signups)) ? Number(data.signups) : ids.targetSignups.value;
-                ids.targetIncome.value = Number.isFinite(Number(data.income)) ? Number(data.income) : ids.targetIncome.value;
-            } catch (error) {
-                console.error("Failed to load targets", error);
-            }
         }
 
         function animateValue(element, target, formatter, duration = 560) {
@@ -1367,69 +1222,10 @@
                 (value) => `${value.toFixed(2)}%`,
                 380
             );
-            renderCommissionCalculator();
         }
 
         function renderQuickStats() {
-            const weekIndex = getCurrentWeekIndexInMonth();
-            const weekForecast = getForecastHoursForWeek(weekIndex) * PAY_PER_HOUR;
-            const difference = thisWeekIncome - weekForecast;
-            const pace = weekForecast > 0 ? (thisWeekIncome / weekForecast) * 100 : 0;
-
             animateValue(ids.quickWeekIncome, thisWeekIncome, (value) => currency(value), 320);
-            animateValue(ids.quickWeekForecast, weekForecast, (value) => currency(value), 320);
-            animateValue(ids.quickWeekDifference, difference, (value) => currency(value), 320);
-            animateValue(ids.quickWeekPace, pace, (value) => `${value.toFixed(0)}%`, 320);
-        }
-
-        function renderCommissionCalculator() {
-            const phones = getValue(ids.phonesRepaired);
-            const signups = getValue(ids.insuranceSignups);
-            const altPhoneRate = Math.max(0, getValue(ids.altPhoneRate));
-            const altSignupRate = Math.max(0, getValue(ids.altSignupRate));
-
-            const currentCommission = (phones * PAY_PER_PHONE) + (signups * PAY_PER_SIGNUP);
-            const altCommission = (phones * altPhoneRate) + (signups * altSignupRate);
-            const difference = altCommission - currentCommission;
-
-            animateValue(ids.commissionCurrent, currentCommission, (value) => currency(value), 320);
-            animateValue(ids.commissionAlt, altCommission, (value) => currency(value), 320);
-            animateValue(ids.commissionDifference, difference, (value) => currency(value), 320);
-        }
-
-        function getProgressParts(current, target) {
-            if (target <= 0) {
-                return { percent: 0, ratio: "0 / 0", remaining: 0 };
-            }
-            const percent = Math.min(100, (current / target) * 100);
-            const remaining = Math.max(0, target - current);
-            return {
-                percent,
-                ratio: `${current} / ${target}`,
-                remaining
-            };
-        }
-
-        function renderTargetTracker() {
-            const phonesTarget = Math.max(0, Math.round(getValue(ids.targetPhones)));
-            const signupsTarget = Math.max(0, Math.round(getValue(ids.targetSignups)));
-            const incomeTarget = Math.max(0, getValue(ids.targetIncome));
-
-            const phoneProgress = getProgressParts(Math.round(thisMonthPhonesTotal), phonesTarget);
-            const signupProgress = getProgressParts(Math.round(thisMonthSignupsTotal), signupsTarget);
-            const incomeProgress = getProgressParts(Number(thisMonthIncome.toFixed(2)), incomeTarget);
-
-            ids.targetPhonesText.textContent = `${phoneProgress.ratio} (${phoneProgress.percent.toFixed(0)}%)`;
-            ids.targetSignupsText.textContent = `${signupProgress.ratio} (${signupProgress.percent.toFixed(0)}%)`;
-            ids.targetIncomeText.textContent = `${currency(thisMonthIncome)} / ${currency(incomeTarget)} (${incomeProgress.percent.toFixed(0)}%)`;
-
-            ids.targetPhonesMeta.textContent = phonesTarget > 0 ? `${phoneProgress.remaining} phones left` : "Set a target to begin tracking.";
-            ids.targetSignupsMeta.textContent = signupsTarget > 0 ? `${signupProgress.remaining} signups left` : "Set a target to begin tracking.";
-            ids.targetIncomeMeta.textContent = incomeTarget > 0 ? `${currency(incomeProgress.remaining)} left` : "Set a target to begin tracking.";
-
-            ids.targetPhonesBar.style.width = `${phoneProgress.percent.toFixed(1)}%`;
-            ids.targetSignupsBar.style.width = `${signupProgress.percent.toFixed(1)}%`;
-            ids.targetIncomeBar.style.width = `${incomeProgress.percent.toFixed(1)}%`;
         }
 
         function clearMonthSummary() {
@@ -1631,7 +1427,6 @@
 
             renderPlanner();
             renderQuickStats();
-            renderTargetTracker();
         }
 
         async function renderYearSummary() {
@@ -1837,80 +1632,6 @@
             ids.plannerGoalRing.style.strokeDasharray = `${GOAL_RING_CIRCUMFERENCE}`;
             ids.plannerGoalRing.style.strokeDashoffset = `${GOAL_RING_CIRCUMFERENCE * (1 - progress)}`;
             animateValue(ids.plannerGoalProgress, progressPercent, (value) => `${Math.round(value)}%`, 420);
-        }
-
-        function renderForecast() {
-            const week1 = getValue(ids.weekHours1);
-            const week2 = getValue(ids.weekHours2);
-            const week3 = getValue(ids.weekHours3);
-            const week4 = getValue(ids.weekHours4);
-            const week5 = getValue(ids.weekHours5);
-
-            const totalHours = week1 + week2 + week3 + week4 + week5;
-            const hourlyIncome = totalHours * PAY_PER_HOUR;
-
-            animateValue(ids.forecastTotalHours, totalHours, (value) => value.toFixed(2), 340);
-            animateValue(ids.forecastHourlyPay, hourlyIncome, (value) => currency(value), 340);
-            renderQuickStats();
-        }
-
-        function setForecastStatus(text, isError = false) {
-            ids.forecastStatus.textContent = text;
-            ids.forecastStatus.style.color = isError ? "#b11a1a" : "#5f6b7a";
-        }
-
-        function saveForecast() {
-            const monthKey = getCurrentMonthKey();
-            const week1 = getValue(ids.weekHours1);
-            const week2 = getValue(ids.weekHours2);
-            const week3 = getValue(ids.weekHours3);
-            const week4 = getValue(ids.weekHours4);
-            const week5 = getValue(ids.weekHours5);
-
-            const forecastData = {
-                month_key: monthKey,
-                week1_hours: week1,
-                week2_hours: week2,
-                week3_hours: week3,
-                week4_hours: week4,
-                week5_hours: week5
-            };
-
-            try {
-                localStorage.setItem(`forecast_${monthKey}`, JSON.stringify(forecastData));
-                setForecastStatus("Forecast saved locally!");
-                setTimeout(() => setForecastStatus(""), 3000);
-            } catch (error) {
-                setForecastStatus(`Save failed: ${error.message}`, true);
-            }
-        }
-
-        function loadForecast() {
-            const monthKey = getCurrentMonthKey();
-            try {
-                const saved = localStorage.getItem(`forecast_${monthKey}`);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    ids.weekHours1.value = data.week1_hours || "";
-                    ids.weekHours2.value = data.week2_hours || "";
-                    ids.weekHours3.value = data.week3_hours || "";
-                    ids.weekHours4.value = data.week4_hours || "";
-                    ids.weekHours5.value = data.week5_hours || "";
-                    renderForecast();
-                }
-            } catch (error) {
-                setForecastStatus(`Load failed: ${error.message}`, true);
-            }
-        }
-
-        function clearForecastInputs() {
-            ids.weekHours1.value = "";
-            ids.weekHours2.value = "";
-            ids.weekHours3.value = "";
-            ids.weekHours4.value = "";
-            ids.weekHours5.value = "";
-            renderForecast();
-            setForecastStatus("");
         }
 
         async function render12MonthChart() {
@@ -2124,21 +1845,7 @@
         });
         ids.addBillBtn.addEventListener("click", addBill);
         ids.refreshBillsBtn.addEventListener("click", refreshExpenses);
-        ids.saveForecastBtn.addEventListener("click", saveForecast);
-        ids.clearForecastBtn.addEventListener("click", clearForecastInputs);
         ids.goalAmount.addEventListener("input", renderPlanner);
-        [ids.weekHours1, ids.weekHours2, ids.weekHours3, ids.weekHours4, ids.weekHours5].forEach((input) => {
-            input.addEventListener("input", renderForecast);
-        });
-        [ids.altPhoneRate, ids.altSignupRate].forEach((input) => {
-            input.addEventListener("input", renderCommissionCalculator);
-        });
-        [ids.targetPhones, ids.targetSignups, ids.targetIncome].forEach((input) => {
-            input.addEventListener("input", () => {
-                saveTargetsLocal();
-                renderTargetTracker();
-            });
-        });
         ids.workDate.addEventListener("change", async () => {
             ids.dailySpendingDate.value = ids.workDate.value;
             await loadDailySpendingForDate(ids.workDate.value);
@@ -2174,16 +1881,12 @@
             setupButtonRipples();
             setDefaultDate();
             ids.dailySpendingDate.value = ids.workDate.value;
-            loadTargetsLocal();
             renderDailySummary();
             renderDailySpendingCard();
             clearMonthSummary();
             clearYearSummary();
             renderPlanner();
-            loadForecast();
-            renderCommissionCalculator();
             renderQuickStats();
-            renderTargetTracker();
 
             ids.dailyNote.value = localStorage.getItem(noteStorageKey(ids.workDate.value)) || "";
 
