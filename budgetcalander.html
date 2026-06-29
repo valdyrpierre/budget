@@ -199,6 +199,8 @@
       text-align: center;
       margin-top: 8px;
       font-weight: 900;
+      font-size: 13px;
+      line-height: 1.2;
     }
 
     .money-lines input {
@@ -211,9 +213,28 @@
       outline: none;
     }
 
-    .income-input { color: var(--income); }
-    .expense-input { color: var(--expense); }
-    .net-line { color: var(--net); font-size: 16px; }
+    .income-input {
+      color: var(--income);
+      font-size: 14px;
+      font-weight: 900;
+      background: rgba(74, 222, 128, 0.14);
+      border: 1px solid rgba(74, 222, 128, 0.24);
+      border-radius: 999px;
+      padding: 4px 8px;
+    }
+
+    .expense-input {
+      color: var(--expense);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .net-line {
+      color: var(--net);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
     .net-line.negative { color: var(--expense); }
 
     .legend {
@@ -286,7 +307,7 @@
       <div class="weekdays" id="weekdays"></div>
       <div class="calendar-grid" id="calendarGrid"></div>
       <div class="legend">
-        <span><i class="dot income"></i> Income Only</span>
+        <span><i class="dot income"></i> Income and net amount from the database</span>
       </div>
     </section>
   </main>
@@ -498,8 +519,8 @@
           ${isToday ? `<div class="today-dot"></div>` : ""}
           ${otherMonth ? "" : `
             <div class="money-lines">
-              <div class="income-input">Income ${money(income)}</div>
-              <div class="expense-input">Spend ${money(expense)}</div>
+              <div class="income-input">${income > 0 ? money(income) : "No income"}</div>
+              <div class="expense-input">Spending ${money(expense)}</div>
               <div class="net-line ${netClass}">Net ${money(net)}</div>
             </div>
           `}
