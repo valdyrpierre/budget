@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Budget Calendar</title>
+    <style>
+        :root {
+            --bg: #07111f;
+            --bg-alt: #0f1b2f;
+            --card: rgba(10, 17, 31, 0.9);
+            --text: #f4f8ff;
+            --muted: #9fb2cb;
+            --accent: #2f81f7;
+            --accent-2: #6ee7b7;
+            --danger: #ff6b6b;
+            --border: #21324e;
+            --shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg), var(--bg-alt));
+            color: var(--text);
+            padding: 24px 16px 40px;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        h1 { margin: 0 0 6px; font-size: 2rem; }
+        .subtitle { margin: 0; color: var(--muted); }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .stat {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .stat .label { color: var(--muted); font-size: 0.85rem; margin-bottom: 4px; }
+        .stat .value { font-size: 1.15rem; font-weight: 700; }
+        .positive { color: var(--accent-2); }
+        .negative { color: var(--danger); }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 16px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .calendar-nav button {
+            border: none;
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, var(--accent), #174ea6);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .day-name {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 700;
+            padding-bottom: 4px;
+        }
+
+        .day-cell {
+            min-height: 110px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease;
+        }
+
+        .day-cell:hover { transform: translateY(-1px); border-color: var(--accent); }
+        .day-cell.selected { border-color: var(--accent-2); box-shadow: inset 0 0 0 1px var(--accent-2); }
+        .day-cell.negative-net {
+            border-color: rgba(255, 107, 107, 0.5);
+            background: rgba(255, 107, 107, 0.12);
+        }
+        .day-cell.other-month { opacity: 0.45; }
+
+        .day-number { font-weight: 700; margin-bottom: 10px; font-size: 1rem; }
+        .day-info { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+        .day-details { display: grid; gap: 4px; }
+        .day-detail {
+            font-size: 0.72rem;
+            padding: 5px 7px;
+            border-radius: 999px;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .day-detail.income { background: rgba(110, 231, 183, 0.15); color: var(--accent-2); }
+        .day-detail.spending { background: rgba(47, 129, 247, 0.16); color: #8ec5ff; }
+        .day-detail.bill { background: rgba(255, 107, 107, 0.14); color: var(--danger); }
+
+        .pill {
+            display: block;
+            font-size: 0.72rem;
+            padding: 4px 6px;
+            margin-top: 4px;
+            border-radius: 999px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pill.net-positive { background: rgba(110, 231, 183, 0.15); color: var(--accent-2); }
+        .pill.net-negative { background: rgba(255, 107, 107, 0.16); color: var(--danger); }
+
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
+        input, textarea, button {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            padding: 10px;
+            font-size: 1rem;
+            background: rgba(2, 7, 16, 0.7);
+            color: var(--text);
+        }
+
+        textarea { min-height: 70px; resize: vertical; }
+
+        button {
+            cursor: pointer;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #174ea6);
+            border: none;
+            color: white;
+        }
+
+        .status {
+            margin-top: 10px;
+            color: var(--accent-2);
+            font-size: 0.9rem;
+        }
+
+        .entry-list { display: grid; gap: 8px; margin-top: 10px; }
+        .entry {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div>
+                <h1>Budget Calendar</h1>
+                <p class="subtitle">See payday income, bills, and spending by day in one place.</p>
+            </div>
+        </div>
+
+        <section class="card">
+            <div class="stats">
+                <div class="stat">
+                    <div class="label">Income this month</div>
+                    <div class="value positive" id="incomeMonth">$0.00</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Spent this month</div>
+                    <div class="value negative" id="spentMonth">$0.00</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Net</div>
+                    <div class="value" id="netMonth">$0.00</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="layout">
+            <section class="card">
+                <div class="calendar-nav">
+                    <button type="button" id="prevMonthBtn">← Previous</button>
+                    <h2 id="monthLabel" style="margin: 0;">Month</h2>
+                    <button type="button" id="nextMonthBtn">Next →</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </section>
+
+            <section class="card">
+                <h3 style="margin-top: 0;">Add spending</h3>
+                <form id="spendForm">
+                    <div class="form-group">
+                        <label for="spendDate">Date</label>
+                        <input type="date" id="spendDate" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="spendDescription">Description</label>
+                        <input type="text" id="spendDescription" placeholder="Groceries" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="spendAmount">Amount</label>
+                        <input type="number" id="spendAmount" step="0.01" min="0" placeholder="0.00" required />
+                    </div>
+                    <button type="submit">Save spending</button>
+                </form>
+                <div class="status" id="statusMessage"></div>
+
+                <div style="margin-top: 16px;">
+                    <h3 style="margin-top: 0;">Selected day</h3>
+                    <div id="selectedDayLabel">Choose a day</div>
+                    <div class="entry-list" id="selectedDayEntries"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://twzsvnegkhkhcgjjasik.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_nHkf-Zy3Tirn0XwLnGIsMw_MI-9zNhL";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const state = {
+            currentDate: new Date(),
+            selectedDate: new Date().toISOString().slice(0, 10),
+            events: [],
+            spending: []
+        };
+
+        const calendarGrid = document.getElementById("calendarGrid");
+        const monthLabel = document.getElementById("monthLabel");
+        const incomeMonth = document.getElementById("incomeMonth");
+        const spentMonth = document.getElementById("spentMonth");
+        const netMonth = document.getElementById("netMonth");
+        const selectedDayLabel = document.getElementById("selectedDayLabel");
+        const selectedDayEntries = document.getElementById("selectedDayEntries");
+        const statusMessage = document.getElementById("statusMessage");
+        const spendForm = document.getElementById("spendForm");
+        const spendDate = document.getElementById("spendDate");
+        const spendDescription = document.getElementById("spendDescription");
+        const spendAmount = document.getElementById("spendAmount");
+
+        document.getElementById("prevMonthBtn").addEventListener("click", () => {
+            state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
+            render();
+        });
+
+        document.getElementById("nextMonthBtn").addEventListener("click", () => {
+            state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
+            render();
+        });
+
+        spendForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const date = spendDate.value;
+            const description = spendDescription.value.trim();
+            const amount = Number(spendAmount.value);
+
+            if (!date || !description || !amount) {
+                showStatus("Please enter a description, date, and amount.", true);
+                return;
+            }
+
+            const { error } = await supabase.from("daily_spending").insert([{ entry_date: date, description, amount }]);
+
+            if (error) {
+                showStatus(`Could not save spending: ${error.message}`, true);
+                return;
+            }
+
+            spendDescription.value = "";
+            spendAmount.value = "";
+            state.selectedDate = date;
+            await loadData();
+            showStatus("Spending saved.");
+        });
+
+        function showStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            statusMessage.style.color = isError ? "#ff6b6b" : "#6ee7b7";
+        }
+
+        function currency(value) {
+            return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value || 0);
+        }
+
+        function toISODate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        async function loadData() {
+            const year = state.currentDate.getFullYear();
+            const month = state.currentDate.getMonth();
+            const start = toISODate(new Date(year, month, 1));
+            const end = toISODate(new Date(year, month + 1, 1));
+
+            const [{ data: eventsData, error: eventsError }, { data: spendingData, error: spendingError }] = await Promise.all([
+                supabase.from("budget_calendar_events").select("event_name,event_day,event_type,amount").eq("is_active", true).order("event_day"),
+                supabase.from("daily_spending").select("*").gte("entry_date", start).lt("entry_date", end).order("entry_date")
+            ]);
+
+            if (eventsError) {
+                console.error(eventsError);
+                showStatus("Could not load calendar events.", true);
+                return;
+            }
+
+            if (spendingError) {
+                console.error(spendingError);
+                showStatus("Could not load spending entries.", true);
+                return;
+            }
+
+            state.events = eventsData || [];
+            state.spending = spendingData || [];
+            render();
+        }
+
+        function getSpendingByDate(dateString) {
+            return state.spending.filter(entry => entry.entry_date === dateString);
+        }
+
+        function getIncomeForDay(dayNumber) {
+            return state.events
+                .filter(event => event.event_day === dayNumber && (event.event_type === "payday" || event.event_type === "other"))
+                .reduce((sum, event) => sum + Number(event.amount || 0), 0);
+        }
+
+        function getSpendingTotalForDate(dateString) {
+            return getSpendingByDate(dateString).reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+        }
+
+        function getBillsForDay(dayNumber) {
+            return state.events.filter(event => event.event_day === dayNumber && event.event_type === "bill");
+        }
+
+        function render() {
+            const year = state.currentDate.getFullYear();
+            const month = state.currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const startingDay = firstDay.getDay();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+            monthLabel.textContent = firstDay.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+            const cells = [];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+            dayNames.forEach(name => {
+                cells.push(`<div class="day-name">${name}</div>`);
+            });
+
+            for (let i = startingDay - 1; i >= 0; i--) {
+                const day = prevMonthDays - i;
+                cells.push(`<div class="day-cell other-month"><div class="day-number">${day}</div></div>`);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateString = toISODate(new Date(year, month, day));
+                const incomeAmount = getIncomeForDay(day);
+                const spendingAmount = getSpendingTotalForDate(dateString);
+                const billEvents = getBillsForDay(day);
+                const netAmount = incomeAmount - spendingAmount;
+                const hasActivity = incomeAmount > 0 || spendingAmount > 0 || billEvents.length > 0;
+                const selected = state.selectedDate === dateString;
+                const netLabel = hasActivity
+                    ? (netAmount >= 0 ? `+${currency(netAmount)}` : `-${currency(Math.abs(netAmount))}`)
+                    : "";
+                const netClass = netAmount >= 0 ? "net-positive" : "net-negative";
+                const incomeDetail = incomeAmount > 0 ? `<span class="day-detail income">Income ${currency(incomeAmount)}</span>` : "";
+                const spendingDetail = spendingAmount > 0 ? `<span class="day-detail spending">Spent ${currency(spendingAmount)}</span>` : "";
+                const billDetails = billEvents.map(event => `<span class="day-detail bill">${event.event_name} ${currency(event.amount)}</span>`).join("");
+
+                cells.push(`
+                    <div class="day-cell ${selected ? "selected" : ""} ${netAmount < 0 ? "negative-net" : ""}" data-date="${dateString}">
+                        <div class="day-number">${day}</div>
+                        ${hasActivity ? `<div class="day-info ${netClass}">${netLabel}</div>` : ""}
+                        <div class="day-details">
+                            ${incomeDetail}
+                            ${spendingDetail}
+                            ${billDetails}
+                        </div>
+                    </div>
+                `);
+            }
+
+            const remainingCells = (7 - ((startingDay + daysInMonth) % 7)) % 7;
+            for (let day = 1; day <= remainingCells; day++) {
+                cells.push(`<div class="day-cell other-month"><div class="day-number">${day}</div></div>`);
+            }
+
+            calendarGrid.innerHTML = cells.join("");
+            calendarGrid.querySelectorAll(".day-cell[data-date]").forEach(cell => {
+                cell.addEventListener("click", () => {
+                    state.selectedDate = cell.getAttribute("data-date");
+                    render();
+                    renderSelectedDay();
+                });
+            });
+
+            renderSelectedDay();
+            renderSummary();
+            if (!spendDate.value) {
+                spendDate.value = state.selectedDate;
+            }
+        }
+
+        function renderSelectedDay() {
+            if (!state.selectedDate) {
+                selectedDayLabel.textContent = "Choose a day";
+                selectedDayEntries.innerHTML = "";
+                return;
+            }
+
+            const selected = new Date(`${state.selectedDate}T00:00:00`);
+            selectedDayLabel.textContent = selected.toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric"
+            });
+
+            const entries = getSpendingByDate(state.selectedDate);
+            const dayNumber = selected.getDate();
+            const incomeAmount = getIncomeForDay(dayNumber);
+            const bills = getBillsForDay(dayNumber);
+
+            const pieces = [];
+            if (incomeAmount > 0) {
+                pieces.push(`<div class="entry"><strong>Income:</strong> ${currency(incomeAmount)}</div>`);
+            }
+            bills.forEach(event => {
+                pieces.push(`<div class="entry"><strong>Bill due:</strong> ${event.event_name} — ${currency(event.amount)}</div>`);
+            });
+            if (entries.length === 0 && incomeAmount === 0 && bills.length === 0) {
+                pieces.push(`<div class="entry">No income or spending logged for this day.</div>`);
+            }
+            entries.forEach(entry => {
+                pieces.push(`<div class="entry"><strong>${entry.description}</strong><br />${currency(entry.amount)}</div>`);
+            });
+            selectedDayEntries.innerHTML = pieces.join("");
+        }
+
+        function renderSummary() {
+            const daysInMonth = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 0).getDate();
+            const income = state.events
+                .filter(event => event.event_type === "payday" || event.event_type === "other")
+                .filter(event => Number(event.event_day) <= daysInMonth)
+                .reduce((sum, event) => sum + Number(event.amount || 0), 0);
+            const spent = state.spending.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+
+            incomeMonth.textContent = currency(income);
+            spentMonth.textContent = currency(spent);
+            netMonth.textContent = currency(income - spent);
+            netMonth.className = `value ${income - spent >= 0 ? "positive" : "negative"}`;
+        }
+
+        (async function init() {
+            spendDate.value = state.selectedDate;
+            await loadData();
+        })();
+    </script>
+</body>
+</html>
