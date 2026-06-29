@@ -611,6 +611,30 @@
         </section>
 
         <section class="card">
+            <h2>Daily Spending</h2>
+            <div class="grid">
+                <div>
+                    <label for="dailySpendingDate">Date</label>
+                    <input id="dailySpendingDate" type="date">
+                </div>
+                <div>
+                    <label for="dailySpendingAmount">Amount spent ($)</label>
+                    <input id="dailySpendingAmount" type="number" min="0" step="0.01" placeholder="ex: 42.50">
+                </div>
+            </div>
+            <div class="button-row">
+                <button id="saveDailySpendingBtn" type="button">Save Spending</button>
+            </div>
+            <div class="stats">
+                <div class="stat highlight-stat">
+                    <h3>Amount for Selected Day</h3>
+                    <p class="money" id="dailySpendingSummary">$0.00</p>
+                </div>
+            </div>
+            <p class="small">This updates the same date-based budget data used by the calendar.</p>
+        </section>
+
+        <section class="card">
             <h2>Month Totals (Compare)</h2>
             <div class="stats">
                 <div class="stat highlight-stat">
@@ -882,6 +906,7 @@
         const TABLE_NAME = "daily_tracker";
         const EXPENSE_TABLE = "expense_items";
         const EXPENSE_PAYMENT_TABLE = "expense_payments";
+        const SPENDING_TABLE = "daily_spending";
 
         let supabaseClient = null;
         let monthlyChart = null;
@@ -909,6 +934,10 @@
             dailyCommission: document.getElementById("dailyCommission"),
             dailyTotal: document.getElementById("dailyTotal"),
             dailyReviewRate: document.getElementById("dailyReviewRate"),
+            dailySpendingDate: document.getElementById("dailySpendingDate"),
+            dailySpendingAmount: document.getElementById("dailySpendingAmount"),
+            saveDailySpendingBtn: document.getElementById("saveDailySpendingBtn"),
+            dailySpendingSummary: document.getElementById("dailySpendingSummary"),
             quickWeekIncome: document.getElementById("quickWeekIncome"),
             quickWeekForecast: document.getElementById("quickWeekForecast"),
             quickWeekDifference: document.getElementById("quickWeekDifference"),
@@ -1039,6 +1068,140 @@
 
         function noteStorageKey(dateString) {
             return `day_note_${dateString}`;
+        }
+
+        function budgetStorageKey(dateString) {
+            if (!dateString) {
+                return "";
+            }
+            const [year, month, day] = dateString.split("-");
+            return `budget-${year}-${Number(month)}-${Number(day)}`;
+        }
+
+        function getBudgetDayData(dateString) {
+            const key = budgetStorageKey(dateString);
+            if (!key) {
+                return { income: "", expense: "" };
+            }
+
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) {
+                    return { income: "", expense: "" };
+                }
+
+                const parsed = JSON.parse(raw);
+                return {
+                    income: Number.isFinite(Number(parsed.income)) ? Number(parsed.income) : "",
+                    expense: Number.isFinite(Number(parsed.expense)) ? Number(parsed.expense) : ""
+                };
+            } catch (error) {
+                console.error("Failed to load budget day data", error);
+                return { income: "", expense: "" };
+            }
+        }
+
+        async function saveDailySpending(amount, dateString) {
+            const selectedDate = dateString || ids.dailySpendingDate.value || ids.workDate.value;
+            if (!selectedDate) {
+                return;
+            }
+
+            const numericAmount = Math.max(0, Number(amount) || 0);
+            const budgetData = getBudgetDayData(selectedDate);
+            budgetData.expense = numericAmount;
+            localStorage.setItem(budgetStorageKey(selectedDate), JSON.stringify(budgetData));
+            renderDailySpendingCard();
+
+            if (!supabaseClient) {
+                setSyncStatus("Cloud sync: not connected. Add your Supabase URL + anon key.", true);
+                return;
+            }
+
+            try {
+                const { data: existingRows, error: selectError } = await supabaseClient
+                    .from(SPENDING_TABLE)
+                    .select("id")
+                    .eq("entry_date", selectedDate)
+                    .order("created_at", { ascending: false })
+                    .limit(1);
+
+                if (selectError) {
+                    throw selectError;
+                }
+
+                const row = {
+                    entry_date: selectedDate,
+                    description: "Daily spending",
+                    amount: numericAmount
+                };
+
+                let result;
+                if (existingRows && existingRows.length > 0) {
+                    result = await supabaseClient
+                        .from(SPENDING_TABLE)
+                        .update(row)
+                        .eq("id", existingRows[0].id);
+                } else {
+                    result = await supabaseClient
+                        .from(SPENDING_TABLE)
+                        .insert(row);
+                }
+
+                if (result.error) {
+                    throw result.error;
+                }
+
+                setSyncStatus("Cloud sync: connected.");
+            } catch (error) {
+                console.error("Failed to save spending", error);
+                setSyncStatus(`Cloud sync error: ${error.message}`, true);
+            }
+        }
+
+        async function loadDailySpendingForDate(dateString) {
+            const selectedDate = dateString || ids.dailySpendingDate.value || ids.workDate.value;
+            if (!selectedDate) {
+                renderDailySpendingCard();
+                return;
+            }
+
+            if (!supabaseClient) {
+                renderDailySpendingCard();
+                return;
+            }
+
+            try {
+                const { data: rows, error } = await supabaseClient
+                    .from(SPENDING_TABLE)
+                    .select("amount")
+                    .eq("entry_date", selectedDate)
+                    .order("created_at", { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    throw error;
+                }
+
+                if (rows && rows.length > 0) {
+                    const budgetData = getBudgetDayData(selectedDate);
+                    budgetData.expense = Number(rows[0].amount) || 0;
+                    localStorage.setItem(budgetStorageKey(selectedDate), JSON.stringify(budgetData));
+                }
+
+                renderDailySpendingCard();
+            } catch (error) {
+                console.error("Failed to load spending", error);
+                renderDailySpendingCard();
+            }
+        }
+
+        function renderDailySpendingCard() {
+            const selectedDate = ids.dailySpendingDate.value || ids.workDate.value;
+            const data = getBudgetDayData(selectedDate);
+            const expense = Number(data.expense) || 0;
+            ids.dailySpendingSummary.textContent = currency(expense);
+            ids.dailySpendingAmount.value = expense > 0 ? String(expense) : "";
         }
 
         function saveTargetsLocal() {
@@ -1997,6 +2160,9 @@
 
         ids.saveBtn.addEventListener("click", saveDayRecord);
         ids.clearBtn.addEventListener("click", clearInputs);
+        ids.saveDailySpendingBtn.addEventListener("click", () => {
+            saveDailySpending(ids.dailySpendingAmount.value, ids.dailySpendingDate.value || ids.workDate.value);
+        });
         ids.addBillBtn.addEventListener("click", addBill);
         ids.refreshBillsBtn.addEventListener("click", refreshExpenses);
         ids.saveForecastBtn.addEventListener("click", saveForecast);
@@ -2015,7 +2181,12 @@
             });
         });
         ids.workDate.addEventListener("change", async () => {
+            ids.dailySpendingDate.value = ids.workDate.value;
+            await loadDailySpendingForDate(ids.workDate.value);
             await loadSelectedDateData();
+        });
+        ids.dailySpendingDate.addEventListener("change", async () => {
+            await loadDailySpendingForDate(ids.dailySpendingDate.value);
         });
         numberInputs.forEach((input) => input.addEventListener("input", renderDailySummary));
         ids.expenseList.addEventListener("change", async (event) => {
@@ -2043,8 +2214,10 @@
             setupCardParallax();
             setupButtonRipples();
             setDefaultDate();
+            ids.dailySpendingDate.value = ids.workDate.value;
             loadTargetsLocal();
             renderDailySummary();
+            renderDailySpendingCard();
             clearMonthSummary();
             clearYearSummary();
             renderPlanner();
@@ -2060,6 +2233,7 @@
                     setLoadingState(true);
                     await Promise.all([
                         loadSelectedDateData(),
+                        loadDailySpendingForDate(ids.workDate.value),
                         renderMonthSummary(),
                         renderYearSummary(),
                         refreshExpenses(),
